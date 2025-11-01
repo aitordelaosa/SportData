@@ -1,0 +1,51 @@
+services:
+  mongo:
+    image: mongo:6
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: sportdata_usuarios
+    volumes:
+      - mongo_data:/data/db
+    ports:
+      - "27018:27017"
+
+  user-service:
+    build:
+      context: ./microservicioUsuarios
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 4001
+      MONGO_URI: mongodb://mongo:27017/sportdata_usuarios
+      JWT_SECRET: ${JWT_SECRET:-sportdata-dev-secret}
+    depends_on:
+      - mongo
+    ports:
+      - "4001:4001"
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      USER_SERVICE_URL: http://user-service:4001/api
+      JWT_SECRET: ${JWT_SECRET:-sportdata-dev-secret}
+    depends_on:
+      - user-service
+    ports:
+      - "5000:5000"
+
+  frontend:
+    image: nginx:alpine
+    restart: unless-stopped
+    volumes:
+      - ./web:/usr/share/nginx/html:ro
+    ports:
+      - "8080:80"
+    depends_on:
+      - api-gateway
+
+volumes:
+  mongo_data:

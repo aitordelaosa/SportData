@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SportData | Registro de socio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/stilo.css" />
+</head>
+<body class="theme-dark">
+  <header class="sd-header">
+    <div class="sd-header__inner">
+      <a class="sd-logo" href="../html/index.html">
+        <img class="sd-logo__img" src="../images/Logo.png" alt="SportData" />
+      </a>
+      <div class="sd-search">
+        <input type="search" placeholder="Buscar..." aria-label="Buscar" />
+        <button class="icon-btn" aria-label="Cerrar busqueda" title="Cerrar">&times;</button>
+      </div>
+      <nav class="sd-icons">
+        <button class="icon-btn icon-btn--icon" type="button" aria-label="Favoritos" title="Favoritos">
+          <img class="sd-icon" src="../images/icon-heart.svg" alt="" />
+        </button>
+        <button class="icon-btn icon-btn--icon" type="button" aria-label="Carrito" title="Carrito">
+          <img class="sd-icon" src="../images/icon-cart.svg" alt="" />
+        </button>
+        <button class="icon-btn icon-btn--icon" type="button" aria-label="Perfil" title="Perfil">
+          <img class="sd-icon" src="../images/icon-user.svg" alt="" />
+        </button>
+      </nav>
+    </div>
+    <div class="sd-tabs">
+      <a href="#" class="tab">RUNNING</a>
+      <a href="#" class="tab">MONTAÑA</a>
+      <a href="#" class="tab">FÚTBOL</a>
+      <a href="#" class="tab">CICLISMO</a>
+      <a href="#" class="tab">BALONCESTO</a>
+    </div>
+  </header>
+
+  <main class="center-wrap">
+    <nav class="breadcrumb">
+      <a href="../html/index.html">Inicio</a>
+      <span> / </span>
+      <span>Registro</span>
+    </nav>
+
+    <section class="auth-card" id="registerCard">
+      <div class="auth-card__brand">
+        <img class="auth-card__logo" src="../images/Logo.png" alt="SportData" />
+      </div>
+      <h1 class="auth-card__title">REGISTRO DE SOCIO</h1>
+
+      <form id="registerForm" novalidate>
+        <!-- id_usuario (DNI) -->
+        <div class="field">
+          <label for="dni">DNI / ID de usuario</label>
+          <input id="dni" name="dni" type="text" placeholder="12345678X" autocomplete="off" required />
+          <p class="field__hint">Usaremos este identificador para iniciar sesión si no usas email.</p>
+          <p class="field__error" data-error-for="dni"></p>
+        </div>
+
+        <div class="grid-2">
+          <div class="field">
+            <label for="nombre">Nombre</label>
+            <input id="nombre" name="nombre" type="text" placeholder="Nombre y apellidos" required />
+            <p class="field__error" data-error-for="nombre"></p>
+          </div>
+
+          <div class="field">
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" placeholder="email@dominio.com" autocomplete="email" required />
+            <p class="field__error" data-error-for="email"></p>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="field">
+            <label for="password">Contraseña</label>
+            <input id="password" name="password" type="password" placeholder="Mín. 8 caracteres" autocomplete="new-password" required />
+            <p class="field__error" data-error-for="password"></p>
+          </div>
+
+          <div class="field">
+            <label for="password2">Repetir contraseña</label>
+            <input id="password2" name="password2" type="password" placeholder="Repite la contraseña" autocomplete="new-password" required />
+            <p class="field__error" data-error-for="password2"></p>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="direccion">Dirección</label>
+          <input id="direccion" name="direccion" type="text" placeholder="Calle, número, ciudad" required />
+          <p class="field__error" data-error-for="direccion"></p>
+        </div>
+
+        <div class="field">
+          <label for="fecha">Fecha de registro</label>
+          <input id="fecha" name="fecha" type="date" required />
+          <p class="field__hint">Se autocompleta con la fecha actual.</p>
+          <p class="field__error" data-error-for="fecha"></p>
+        </div>
+
+        <button class="btn btn--primary" type="submit">Crear cuenta</button>
+        <p class="alt-action">¿Ya tienes cuenta? <a href=" ../html/index.html">Accede aquí</a></p>
+      </form>
+    </section>
+  </main>
+
+  <footer class="sd-footer">
+    <small>© SportData — Demo UI</small>
+  </footer>
+
+  <script src="../js/app.js" defer></script>
+</body>
+</html>
+
+
+

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SportData | Mi Perfil</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/stilo.css" />
+</head>
+<body class="theme-dark">
+  <header class="sd-header">
+    <div class="sd-header__inner">
+      <a class="sd-logo" href="../html/index.html">
+        <img class="sd-logo__img" src="../images/Logo.png" alt="SportData" />
+      </a>
+
+      <div class="sd-search">
+        <input type="search" placeholder="Buscar..." aria-label="Buscar" disabled />
+        <button class="icon-btn" type="button" aria-label="Buscador deshabilitado" title="No disponible" disabled>&times;</button>
+      </div>
+
+      <nav class="sd-icons">
+        <button class="icon-btn icon-btn--icon" type="button" aria-label="Favoritos" title="Favoritos">
+          <img class="sd-icon" src="../images/icon-heart.svg" alt="" />
+        </button>
+        <button class="icon-btn icon-btn--icon" type="button" aria-label="Carrito" title="Carrito">
+          <img class="sd-icon" src="../images/icon-cart.svg" alt="" />
+        </button>
+        <button class="icon-btn icon-btn--icon" type="button" aria-label="Perfil" title="Perfil">
+          <img class="sd-icon" src="../images/icon-user.svg" alt="" />
+        </button>
+      </nav>
+    </div>
+
+    <div class="sd-tabs">
+      <a href="#" class="tab">RUNNING</a>
+      <a href="#" class="tab">MONTANA</a>
+      <a href="#" class="tab">FUTBOL</a>
+      <a href="#" class="tab">CICLISMO</a>
+      <a href="#" class="tab">BALONCESTO</a>
+    </div>
+  </header>
+
+  <main class="center-wrap">
+    <nav class="breadcrumb">
+      <a href="../html/index.html">Inicio</a>
+      <span> / </span>
+      <span>Mi perfil</span>
+    </nav>
+
+    <section class="auth-card profile-card" id="profileCard">
+      <div class="auth-card__brand">
+        <img class="auth-card__logo" src="../images/Logo.png" alt="SportData" />
+      </div>
+      <h1 class="auth-card__title">MIS DATOS</h1>
+      <p class="auth-card__subtitle" id="profileMessage"></p>
+
+      <div class="profile-actions">
+        <button class="btn btn--ghost profile-actions__logout" type="button" id="logoutBtn">Cerrar sesion</button>
+      </div>
+
+      <div class="profile-grid" id="profileRows" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <footer class="sd-footer">
+    <small>&copy; SportData - Demo UI</small>
+  </footer>
+
+  <script src="../js/app.js" defer></script>
+</body>
+</html>

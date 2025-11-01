@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SportData | Acceso a socios</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/stilo.css" />
+</head>
+<body class="theme-dark">
+  <!-- Header minimal para simular el sitio -->
+  <header class="sd-header">
+    <div class="sd-header__inner">
+      <a class="sd-logo" href="#">
+        <img class="sd-logo__img" src="../images/Logo.png" alt="SportData" />
+      </a>
+
+      <div class="sd-search">
+        <input type="search" placeholder="Buscar..." aria-label="Buscar" />
+      </div>
+
+      <nav class="sd-icons">
+        <button class="icon-btn icon-btn--icon" type="button" aria-label="Favoritos" title="Favoritos">
+          <img class="sd-icon" src="../images/icon-heart.svg" alt="" />
+        </button>
+        <button class="icon-btn icon-btn--icon" type="button" aria-label="Carrito" title="Carrito">
+          <img class="sd-icon" src="../images/icon-cart.svg" alt="" />
+        </button>
+        <button class="icon-btn icon-btn--icon" type="button" aria-label="Perfil" title="Perfil">
+          <img class="sd-icon" src="../images/icon-user.svg" alt="" />
+        </button>
+      </nav>
+    </div>
+
+    <div class="sd-tabs">
+      <a href="#" class="tab">RUNNING</a>
+      <a href="#" class="tab">MONTAÑA</a>
+      <a href="#" class="tab">FÚTBOL</a>
+      <a href="#" class="tab">CICLISMO</a>
+      <a href="#" class="tab">BALONCESTO</a>
+    </div>
+  </header>
+
+  <main class="center-wrap">
+    <nav class="breadcrumb">
+      <a href="#">Inicio</a>
+      <span> / </span>
+      <span>Perfil</span>
+    </nav>
+
+    <section class="auth-card" id="loginCard">
+      <div class="auth-card__brand">
+        <img class="auth-card__logo" src="../images/Logo.png" alt="SportData" />
+      </div>
+      <h1 class="auth-card__title">ACCESO A SOCIOS</h1>
+      <p class="auth-card__subtitle"></p>
+
+      <form id="loginForm" novalidate>
+        <div class="field">
+          <label for="loginId">Email</label>
+          <input id="loginId" name="loginId" type="email" placeholder="email@dominio.com" autocomplete="username" required />
+          <p class="field__error" data-error-for="loginId"></p>
+        </div>
+
+        <div class="field">
+          <label for="loginPassword">Contraseña</label>
+          <input id="loginPassword" name="password" type="password" placeholder="••••••••" autocomplete="current-password" required />
+          <p class="field__error" data-error-for="loginPassword"></p>
+        </div>
+
+        <div class="actions-row">
+          <a class="muted-link" href="#" id="forgotLink">No recuerdo mi contraseña</a>
+        </div>
+
+        <button class="btn btn--primary" type="submit">Entrar</button>
+
+        <p class="alt-action">
+          ¿Todavía no estás en el club? Pincha
+          <a href="../html/register.html">aquí</a> para hacerte socio
+        </p>
+      </form>
+
+      <div class="session-actions" id="sessionActions" hidden>
+        <button class="btn btn--ghost session-actions__btn" type="button" id="editProfileBtn">Editar mis datos</button>
+        <button class="btn btn--ghost session-actions__btn" type="button" id="logoutBtn">Cerrar sesion</button>
+      </div>
+
+    </section>
+
+    <section class="auth-card auth-card--list" id="usersSection" hidden>
+      <h2 class="auth-card__title">USUARIOS REGISTRADOS</h2>
+      <p class="auth-card__subtitle" id="usersSectionMessage"></p>
+
+      <div class="table-wrap">
+        <table class="sd-table">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Email</th>
+              <th>Direccion</th>
+              <th>Rol</th>
+              <th>Registro</th>
+            </tr>
+          </thead>
+          <tbody id="usersTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer class="sd-footer">
+    <small>© SportData — Demo UI</small>
+  </footer>
+
+  <script src="../js/app.js" defer></script>
+</body>
+</html>
+
+
+
