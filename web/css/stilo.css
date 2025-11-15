@@ -165,14 +165,15 @@ body{
 .profile-actions{display:flex; justify-content:flex-end}
 .profile-actions__logout{width:auto}
 .profile-grid{display:flex; flex-direction:column; gap:18px}
-.session-actions{
+.profile-shortcut__actions{
   display:flex;
   gap:12px;
   justify-content:center;
   flex-wrap:wrap;
   margin-top:12px;
 }
-.session-actions__btn{
+.profile-shortcut__btn{
+  width:auto;
   min-width:160px;
 }
 .profile-row{
@@ -225,6 +226,22 @@ body{
 .profile-btn:disabled{opacity:0.5; cursor:not-allowed}
 .profile-password{display:flex; flex-direction:column; gap:12px}
 
+.users-pagination{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:12px;
+  margin-top:16px;
+}
+.users-pagination__btn{
+  width:auto;
+  min-width:120px;
+}
+.users-pagination__info{
+  color:var(--text-2);
+  font-size:0.9rem;
+}
+
 @media (max-width:640px){
   .profile-row{
     grid-template-columns:1fr;
@@ -232,34 +249,6 @@ body{
     align-items:flex-start;
   }
   .profile-row__buttons{justify-content:flex-end}
-}
-.table-wrap{
-  overflow-x:auto;
-  border-radius:var(--radius);
-  border:1px solid var(--outline);
-}
-.sd-table{
-  width:100%;
-  border-collapse:collapse;
-  min-width:600px;
-}
-.sd-table thead{
-  background:rgba(18,21,34,0.8);
-}
-.sd-table thead th{
-  text-align:left;
-  color:var(--text-2);
-  font-size:0.88rem;
-  padding:14px 16px;
-  border-bottom:1px solid var(--outline);
-}
-.sd-table tbody td{
-  padding:14px 16px;
-  border-bottom:1px solid rgba(58,63,85,0.4);
-  background:rgba(18,21,34,0.45);
-}
-.sd-table tbody tr:last-child td{
-  border-bottom:none;
 }
 .table-wrap{
   overflow-x:hidden;

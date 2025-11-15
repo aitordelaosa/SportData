@@ -121,11 +121,25 @@ function formatDateTime(isoString) {
 
 function renderUsers(users = []) {
   const tbody = $('#usersTableBody');
-  if (!tbody) return;
+  const pagination = $('#usersPagination');
+  const pageInfo = $('#usersPageInfo');
+  const prevBtn = $('#prevUsersBtn');
+  const nextBtn = $('#nextUsersBtn');
+  if (!tbody || !pagination || !pageInfo || !prevBtn || !nextBtn) return;
+
+  const SESSION_KEY = 'sd_users_page';
+  const currentPage = Number.parseInt(sessionStorage.getItem(SESSION_KEY) || '1', 10);
+  const perPage = 10;
+  const totalPages = Math.max(1, Math.ceil(users.length / perPage));
+  const safePage = Math.min(Math.max(1, currentPage), totalPages);
+  if (safePage !== currentPage) {
+    sessionStorage.setItem(SESSION_KEY, String(safePage));
+  }
+  const start = (safePage - 1) * perPage;
+  const visible = users.slice(start, start + perPage);
 
   tbody.innerHTML = '';
-
-  users.forEach((user) => {
+  visible.forEach((user) => {
     const row = document.createElement('tr');
     const values = [
       user?.nombre || '',
@@ -143,6 +157,25 @@ function renderUsers(users = []) {
 
     tbody.appendChild(row);
   });
+
+  pagination.hidden = users.length <= perPage;
+  pageInfo.textContent = `Pagina ${safePage} de ${totalPages}`;
+  prevBtn.disabled = safePage <= 1;
+  nextBtn.disabled = safePage >= totalPages;
+
+  prevBtn.onclick = () => {
+    if (safePage > 1) {
+      sessionStorage.setItem(SESSION_KEY, String(safePage - 1));
+      renderUsers(users);
+    }
+  };
+
+  nextBtn.onclick = () => {
+    if (safePage < totalPages) {
+      sessionStorage.setItem(SESSION_KEY, String(safePage + 1));
+      renderUsers(users);
+    }
+  };
 }
 
 (function initLogin() {
@@ -182,6 +215,7 @@ function renderUsers(users = []) {
 
       const { user, token } = payload.data;
       saveSession(user, token);
+      sessionStorage.setItem('sd_users_page', '1');
       toast(`Bienvenido, ${user.nombre}!`, true);
 
       setTimeout(() => {
@@ -302,8 +336,9 @@ function renderUsers(users = []) {
   const session = getSession();
   const welcomeEl = $('#loginCard .auth-card__subtitle');
   const form = $('#loginForm');
-  const actions = $('#sessionActions');
-  const editBtn = $('#editProfileBtn');
+  const shortcut = $('#profileShortcut');
+  const shortcutMessage = $('#profileShortcutMessage');
+  const goProfileBtn = $('#goProfileBtn');
   const logoutBtn = $('#logoutBtn');
 
   if (session) {
@@ -313,11 +348,14 @@ function renderUsers(users = []) {
     if (form) {
       form.setAttribute('hidden', 'true');
     }
-    if (actions) {
-      actions.hidden = false;
+    if (shortcut) {
+      shortcut.hidden = false;
     }
-    if (editBtn) {
-      editBtn.hidden = false;
+    if (shortcutMessage) {
+      shortcutMessage.textContent = `Sesion iniciada como ${session.email}`;
+    }
+    if (goProfileBtn) {
+      goProfileBtn.hidden = false;
     }
     if (logoutBtn) {
       logoutBtn.hidden = false;
@@ -329,11 +367,11 @@ function renderUsers(users = []) {
     if (form) {
       form.removeAttribute('hidden');
     }
-    if (actions) {
-      actions.hidden = true;
+    if (shortcut) {
+      shortcut.hidden = true;
     }
-    if (editBtn) {
-      editBtn.hidden = true;
+    if (goProfileBtn) {
+      goProfileBtn.hidden = true;
     }
     if (logoutBtn) {
       logoutBtn.hidden = true;
@@ -343,17 +381,18 @@ function renderUsers(users = []) {
 
 (function initLogout() {
   const logoutBtn = $('#logoutBtn');
-  const editBtn = $('#editProfileBtn');
+  const goProfileBtn = $('#goProfileBtn');
 
   if (logoutBtn) {
     logoutBtn.addEventListener('click', () => {
       clearSession();
+      sessionStorage.removeItem('sd_users_page');
       window.location.href = 'index.html';
     });
   }
 
-  if (editBtn) {
-    editBtn.addEventListener('click', () => {
+  if (goProfileBtn) {
+    goProfileBtn.addEventListener('click', () => {
       window.location.href = 'profile.html';
     });
   }
@@ -381,13 +420,14 @@ function renderUsers(users = []) {
   }
 
   if (session.rol !== 'admin') {
-    if (messageEl) {
-      messageEl.textContent = 'Necesitas rol admin para ver la lista de usuarios.';
-    }
+    section.hidden = true;
     if (tableWrap) {
       tableWrap.hidden = true;
     }
-    renderUsers([]);
+    const pagination = $('#usersPagination');
+    if (pagination) {
+      pagination.hidden = true;
+    }
     return;
   }
 
@@ -406,6 +446,10 @@ function renderUsers(users = []) {
       if (tableWrap) {
         tableWrap.hidden = users.length === 0;
       }
+      const pagination = $('#usersPagination');
+      if (pagination) {
+        pagination.hidden = users.length <= 10;
+      }
       if (messageEl) {
         messageEl.textContent = users.length
           ? `Total usuarios: ${users.length}`
@@ -415,6 +459,10 @@ function renderUsers(users = []) {
       renderUsers([]);
       if (tableWrap) {
         tableWrap.hidden = true;
+      }
+      const pagination = $('#usersPagination');
+      if (pagination) {
+        pagination.hidden = true;
       }
       if (messageEl) {
         messageEl.textContent = error.message || 'No se pudo obtener la lista de usuarios';

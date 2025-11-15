@@ -76,17 +76,21 @@
 
         <button class="btn btn--primary" type="submit">Entrar</button>
 
-        <p class="alt-action">
-          ¿Todavía no estás en el club? Pincha
-          <a href="../html/register.html">aquí</a> para hacerte socio
-        </p>
-      </form>
+      <p class="alt-action">
+        ¿Todavía no estás en el club? Pincha
+        <a href="../html/register.html">aquí</a> para hacerte socio
+      </p>
+    </form>
 
-      <div class="session-actions" id="sessionActions" hidden>
-        <button class="btn btn--ghost session-actions__btn" type="button" id="editProfileBtn">Editar mis datos</button>
-        <button class="btn btn--ghost session-actions__btn" type="button" id="logoutBtn">Cerrar sesion</button>
+    </section>
+
+    <section class="auth-card" id="profileShortcut" hidden>
+      <h2 class="auth-card__title">MI PERFIL</h2>
+      <p class="auth-card__subtitle" id="profileShortcutMessage"></p>
+      <div class="profile-shortcut__actions">
+        <button class="btn btn--primary profile-shortcut__btn" type="button" id="goProfileBtn">Editar mis datos</button>
+        <button class="btn btn--ghost profile-shortcut__btn" type="button" id="logoutBtn">Cerrar sesión</button>
       </div>
-
     </section>
 
     <section class="auth-card auth-card--list" id="usersSection" hidden>
@@ -106,6 +110,11 @@
           </thead>
           <tbody id="usersTableBody"></tbody>
         </table>
+      </div>
+      <div class="users-pagination" id="usersPagination" hidden>
+        <button class="btn btn--ghost users-pagination__btn" type="button" id="prevUsersBtn">Anterior</button>
+        <span id="usersPageInfo" class="users-pagination__info"></span>
+        <button class="btn btn--ghost users-pagination__btn" type="button" id="nextUsersBtn">Siguiente</button>
       </div>
     </section>
   </main>
