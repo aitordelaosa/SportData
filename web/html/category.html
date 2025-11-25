@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sport4Data | Catálogo por deporte</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/stilo.css" />
+</head>
+<body class="theme-dark">
+  <header class="sd-header">
+    <div class="sd-header__inner">
+      <a class="sd-logo" href="index.html">
+        <img class="sd-logo__img" src="../images/Logo.png" alt="SportData" />
+      </a>
+
+      <div class="sd-search">
+        <input type="search" placeholder="Buscar productos..." aria-label="Buscar" id="searchInputCategory" />
+      </div>
+
+      <nav class="sd-icons">
+        <button class="icon-btn icon-btn--icon" type="button" aria-label="Favoritos" title="Favoritos">
+          <img class="sd-icon" src="../images/icon-heart.svg" alt="" />
+        </button>
+        <button class="icon-btn icon-btn--icon" type="button" aria-label="Carrito" title="Carrito">
+          <img class="sd-icon" src="../images/icon-cart.svg" alt="" />
+        </button>
+        <button class="icon-btn icon-btn--icon" type="button" aria-label="Perfil" title="Iniciar sesión" id="profileButton">
+          <img class="sd-icon" src="../images/icon-user.svg" alt="" />
+        </button>
+      </nav>
+    </div>
+
+    <div class="sd-tabs">
+      <a href="category.html?sport=running" class="tab">RUNNING</a>
+      <a href="category.html?sport=montana" class="tab">MONTAÑA</a>
+      <a href="category.html?sport=futbol" class="tab">FÚTBOL</a>
+      <a href="category.html?sport=ciclismo" class="tab">CICLISMO</a>
+      <a href="category.html?sport=baloncesto" class="tab">BALONCESTO</a>
+    </div>
+  </header>
+
+  <main class="category-layout" data-category-view>
+    <section class="category-hero">
+      <div>
+        <p class="hero__eyebrow" id="categoryEyebrow">Sport4Data</p>
+        <h1 id="categoryTitle">Colección</h1>
+        <p class="hero__lead" id="categoryDescription">
+          Explora todo el equipamiento disponible para tu disciplina favorita.
+        </p>
+      </div>
+      <div class="category-hero__filters">
+        <label>
+          <span>Tipo de producto</span>
+          <select id="categoryTypeFilter">
+            <option value="all">Todos</option>
+            <option value="zapatillas">Zapatillas</option>
+            <option value="ropa">Ropa</option>
+            <option value="accesorios">Accesorios</option>
+          </select>
+        </label>
+        <label>
+          <span>Disponibilidad</span>
+          <select id="categoryAvailabilityFilter">
+            <option value="true" selected>Solo disponibles</option>
+            <option value="all">Todos</option>
+          </select>
+        </label>
+      </div>
+    </section>
+
+    <section class="home-section category-section">
+      <header class="home-section__header">
+        <div>
+          <h2>Productos destacados</h2>
+          <p id="categoryMessage">Cargando productos...</p>
+        </div>
+      </header>
+      <div class="product-grid" id="categoryProducts" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <footer class="sd-footer">
+    <small>&copy; Sport4Data - Catálogo por categoría</small>
+  </footer>
+
+  <div class="modal" id="loginModal" hidden>
+    <div class="modal__overlay" data-close-modal></div>
+    <div class="modal__panel">
+      <button class="modal__close" type="button" data-close-modal aria-label="Cerrar formulario">&times;</button>
+      <div class="modal__content">
+        <section class="auth-card" id="loginCard">
+          <div class="auth-card__brand">
+            <img class="auth-card__logo" src="../images/Logo.png" alt="SportData" />
+          </div>
+          <h1 class="auth-card__title">ACCESO A SOCIOS</h1>
+          <p class="auth-card__subtitle"></p>
+
+          <form id="loginForm" novalidate>
+            <div class="field">
+              <label for="loginId">Email</label>
+              <input id="loginId" name="loginId" type="email" placeholder="email@dominio.com" autocomplete="username" required />
+              <p class="field__error" data-error-for="loginId"></p>
+            </div>
+
+            <div class="field">
+              <label for="loginPassword">Contraseña</label>
+              <input id="loginPassword" name="password" type="password" placeholder="********" autocomplete="current-password" required />
+              <p class="field__error" data-error-for="loginPassword"></p>
+            </div>
+
+            <div class="actions-row">
+              <a class="muted-link" href="#" id="forgotLink">No recuerdo mi contraseña</a>
+            </div>
+
+            <button class="btn btn--primary" type="submit">Entrar</button>
+
+            <p class="alt-action">
+              ¿Todavía no eres socio? Pincha
+              <a href="../html/register.html">aquí</a> para unirte.
+            </p>
+          </form>
+        </section>
+
+        <section class="auth-card" id="profileShortcut" hidden>
+          <h2 class="auth-card__title">MI PERFIL</h2>
+          <p class="auth-card__subtitle" id="profileShortcutMessage"></p>
+          <div class="profile-shortcut__actions">
+            <button class="btn btn--primary profile-shortcut__btn" type="button" id="goProfileBtn">Editar mis datos</button>
+            <button class="btn btn--ghost profile-shortcut__btn" type="button" id="logoutBtn">Cerrar sesión</button>
+          </div>
+        </section>
+
+        <section class="auth-card auth-card--list" id="usersSection" hidden>
+          <h2 class="auth-card__title">USUARIOS REGISTRADOS</h2>
+          <p class="auth-card__subtitle" id="usersSectionMessage"></p>
+
+          <div class="table-wrap">
+            <table class="sd-table">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Email</th>
+                  <th>Dirección</th>
+                  <th>Rol</th>
+                  <th>Registro</th>
+                </tr>
+              </thead>
+              <tbody id="usersTableBody"></tbody>
+            </table>
+          </div>
+          <div class="users-pagination" id="usersPagination" hidden>
+            <button class="btn btn--ghost users-pagination__btn" type="button" id="prevUsersBtn">Anterior</button>
+            <span id="usersPageInfo" class="users-pagination__info"></span>
+            <button class="btn btn--ghost users-pagination__btn" type="button" id="nextUsersBtn">Siguiente</button>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal modal--product" id="productModal" hidden>
+    <div class="modal__overlay" data-close-product></div>
+    <div class="modal__panel modal__panel--product">
+      <button class="modal__close" type="button" data-close-product aria-label="Cerrar detalle">&times;</button>
+      <article class="product-detail" id="productDetail">
+        <div class="product-detail__media">
+          <img id="productDetailImage" src="" alt="" />
+        </div>
+        <div class="product-detail__body">
+          <p class="product-detail__tag" id="productDetailCategory"></p>
+          <h3 id="productDetailName"></h3>
+          <p class="product-detail__brand" id="productDetailBrand"></p>
+          <p class="product-detail__description" id="productDetailDescription"></p>
+          <dl class="product-detail__meta">
+            <div>
+              <dt>Precio</dt>
+              <dd id="productDetailPrice"></dd>
+            </div>
+            <div>
+              <dt>Stock</dt>
+              <dd id="productDetailStock"></dd>
+            </div>
+            <div>
+              <dt>Deporte</dt>
+              <dd id="productDetailSport"></dd>
+            </div>
+            <div>
+              <dt>Color</dt>
+              <dd id="productDetailColor"></dd>
+            </div>
+            <div>
+              <dt>Disponibilidad</dt>
+              <dd id="productDetailAvailability"></dd>
+            </div>
+          </dl>
+        </div>
+      </article>
+    </div>
+  </div>
+
+  <script src="../js/app.js" defer></script>
+</body>
+</html>

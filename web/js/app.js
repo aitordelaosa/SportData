@@ -69,6 +69,146 @@ async function apiRequest(path, { method = 'GET', body, token } = {}) {
   return data;
 }
 
+function buildQueryString(params = {}) {
+  const searchParams = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === '' || value === 'all') {
+      return;
+    }
+    searchParams.append(key, value);
+  });
+  const query = searchParams.toString();
+  return query ? `?${query}` : '';
+}
+
+function debounce(fn, delay = 300) {
+  let timeoutId;
+  return (...args) => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+    timeoutId = setTimeout(() => {
+      timeoutId = null;
+      fn(...args);
+    }, delay);
+  };
+}
+
+function setupSearchSuggestions(input) {
+  if (!input) return null;
+  const wrapper = input.closest('.sd-search');
+  if (!wrapper) return null;
+
+  const panel = document.createElement('div');
+  panel.className = 'search-suggestions';
+  wrapper.appendChild(panel);
+
+  const placeholderImage = 'https://images.unsplash.com/photo-1508609349937-5ec4ae374ebf?auto=format&fit=crop&w=700&q=80';
+
+  function hidePanel() {
+    panel.classList.remove('search-suggestions--visible');
+    panel.innerHTML = '';
+  }
+
+  async function fetchSuggestions(term) {
+    try {
+      const payload = await apiRequest(`/products${buildQueryString({
+        search: term,
+        limit: 5,
+      })}`);
+      const products = payload?.data || payload || [];
+      if (!products.length) {
+        hidePanel();
+        return;
+      }
+
+      panel.innerHTML = '';
+      products.forEach((product) => {
+        const item = document.createElement('div');
+        item.className = 'search-suggestions__item';
+        item.dataset.productId = product.id;
+
+        const img = document.createElement('img');
+        img.className = 'search-suggestions__thumb';
+        img.src = product.imagen_url || placeholderImage;
+        img.alt = product.nombre || 'Producto Sport4Data';
+
+        const info = document.createElement('div');
+        const name = document.createElement('div');
+        name.className = 'search-suggestions__name';
+        name.textContent = product.nombre || 'Producto sin nombre';
+
+        const meta = document.createElement('div');
+        meta.className = 'search-suggestions__meta';
+        const details = [];
+        if (product.categoria) details.push(product.categoria);
+        if (product.deporte) details.push(product.deporte);
+        meta.textContent = details.join(' · ') || 'Sin categoría';
+
+        info.appendChild(name);
+        info.appendChild(meta);
+
+        item.appendChild(img);
+        item.appendChild(info);
+        panel.appendChild(item);
+      });
+
+      panel.classList.add('search-suggestions--visible');
+    } catch (error) {
+      hidePanel();
+    }
+  }
+
+  const debouncedFetch = debounce(fetchSuggestions, 250);
+
+  input.addEventListener('input', () => {
+    const term = input.value.trim();
+    if (term.length < 2) {
+      hidePanel();
+      return;
+    }
+    debouncedFetch(term);
+  });
+
+  input.addEventListener('focus', () => {
+    if (panel.childElementCount) {
+      panel.classList.add('search-suggestions--visible');
+    }
+  });
+
+  panel.addEventListener('click', (event) => {
+    const item = event.target.closest('.search-suggestions__item');
+    if (!item) return;
+    const { productId } = item.dataset;
+    hidePanel();
+    if (productId) {
+      document.dispatchEvent(new CustomEvent('sd:product-detail', {
+        detail: { id: productId },
+      }));
+    }
+  });
+
+  document.addEventListener('click', (event) => {
+    if (!wrapper.contains(event.target)) {
+      hidePanel();
+    }
+  });
+
+  return {
+    hide: hidePanel,
+  };
+}
+
+function getURLParam(name, fallback = null) {
+  if (typeof window === 'undefined') return fallback;
+  try {
+    const params = new URLSearchParams(window.location.search);
+    return params.get(name) ?? fallback;
+  } catch (error) {
+    return fallback;
+  }
+}
+
 function saveSession(user, token) {
   sessionStorage.setItem(
     'sd_auth_user',
@@ -117,6 +257,48 @@ function formatDateTime(isoString) {
     hour: '2-digit',
     minute: '2-digit',
   });
+}
+
+const currencyFormatter = new Intl.NumberFormat('es-ES', {
+  style: 'currency',
+  currency: 'EUR',
+});
+
+function formatCurrency(value) {
+  if (value === undefined || value === null || value === '') {
+    return '-';
+  }
+  const numericValue = typeof value === 'number' ? value : Number(value);
+  if (Number.isNaN(numericValue)) {
+    return value;
+  }
+  return currencyFormatter.format(numericValue);
+}
+
+const SPORT_LABELS = {
+  running: 'Running',
+  montana: 'Montaña',
+  futbol: 'Fútbol',
+  ciclismo: 'Ciclismo',
+  baloncesto: 'Baloncesto',
+  natacion: 'Natación',
+  crossfit: 'Crossfit',
+  tenis: 'Tenis',
+};
+
+function formatSportLabel(value) {
+  if (!value) return '';
+  const key = String(value).toLowerCase();
+  return SPORT_LABELS[key] || value;
+}
+
+function updateBodyModalState() {
+  const openModals = document.querySelectorAll('.modal:not([hidden])').length;
+  if (openModals > 0) {
+    document.body.classList.add('modal-open');
+  } else {
+    document.body.classList.remove('modal-open');
+  }
 }
 
 function renderUsers(users = []) {
@@ -177,6 +359,620 @@ function renderUsers(users = []) {
     }
   };
 }
+
+(function initLoginRedirectOpeners() {
+  const openers = document.querySelectorAll('[data-open-login]');
+  if (!openers.length) return;
+
+  openers.forEach((opener) => {
+    opener.addEventListener('click', (event) => {
+      event.preventDefault();
+      try {
+        sessionStorage.setItem('sd_force_login_modal', '1');
+      } catch (error) {
+        // ignore storage errors
+      }
+      const target = opener.getAttribute('href') || 'index.html';
+      window.location.href = target;
+    });
+  });
+})();
+
+(function initLoginModal() {
+  const modal = $('#loginModal');
+  const trigger = $('#profileButton');
+  if (!modal || !trigger) return;
+
+  const openModal = () => {
+    modal.removeAttribute('hidden');
+    updateBodyModalState();
+  };
+
+  const closeModal = () => {
+    modal.setAttribute('hidden', 'true');
+    updateBodyModalState();
+  };
+
+  trigger.addEventListener('click', () => {
+    const session = getSession();
+    if (session) {
+      window.location.href = 'profile.html';
+      return;
+    }
+    openModal();
+  });
+
+  modal.addEventListener('click', (event) => {
+    const closer = event.target && typeof event.target.closest === 'function'
+      ? event.target.closest('[data-close-modal]')
+      : null;
+    if (closer) {
+      closeModal();
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !modal.hasAttribute('hidden')) {
+      closeModal();
+    }
+  });
+
+  const forceModal = sessionStorage.getItem('sd_force_login_modal') === '1';
+
+  if (forceModal || window.location.hash === '#login') {
+    openModal();
+  }
+
+  if (forceModal) {
+    sessionStorage.removeItem('sd_force_login_modal');
+  }
+})();
+
+(function initScrollButtons() {
+  document.addEventListener('click', (event) => {
+    const trigger = event.target && typeof event.target.closest === 'function'
+      ? event.target.closest('[data-scroll-target]')
+      : null;
+    if (!trigger) return;
+    const selector = trigger.getAttribute('data-scroll-target');
+    if (!selector) return;
+    const section = document.querySelector(selector);
+    if (section) {
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+})();
+
+(function initHighlights() {
+  const highlightCards = document.querySelectorAll('[data-highlight]');
+  if (!highlightCards.length) return;
+
+  const statusEl = $('#runningMessage');
+  let completed = 0;
+  let failures = 0;
+  const total = highlightCards.length;
+
+  highlightCards.forEach((card) => {
+    const sport = card.getAttribute('data-sport');
+    const category = card.getAttribute('data-category');
+    const list = card.querySelector('[data-role="highlight-links"]');
+    if (!sport || !list) {
+      completed += 1;
+      return;
+    }
+
+    async function loadCard() {
+      try {
+        const query = buildQueryString({
+          deporte: sport,
+          categoria: category,
+          disponible: true,
+          limit: 3,
+        });
+        const payload = await apiRequest(`/products${query}`);
+        const products = payload?.data || payload || [];
+        list.innerHTML = '';
+        if (!products.length) {
+          const empty = document.createElement('li');
+          empty.textContent = 'Sin productos disponibles.';
+          list.appendChild(empty);
+          return;
+        }
+        products.forEach((product) => {
+          const li = document.createElement('li');
+          const button = document.createElement('button');
+          button.type = 'button';
+          const nameSpan = document.createElement('span');
+          nameSpan.textContent = product.nombre || 'Producto';
+          const arrowSpan = document.createElement('span');
+          arrowSpan.textContent = '→';
+          button.appendChild(nameSpan);
+          button.appendChild(arrowSpan);
+          button.addEventListener('click', () => {
+            document.dispatchEvent(new CustomEvent('sd:product-detail', {
+              detail: { id: product.id },
+            }));
+          });
+          li.appendChild(button);
+          list.appendChild(li);
+        });
+      } catch (error) {
+        list.innerHTML = '';
+        const err = document.createElement('li');
+        err.textContent = 'Error al cargar la categoria.';
+        list.appendChild(err);
+        failures += 1;
+      } finally {
+        completed += 1;
+        if (statusEl) {
+          if (completed < total) {
+            statusEl.textContent = `Sincronizando datos (${completed}/${total})...`;
+          } else if (failures) {
+            statusEl.textContent = 'Destacados cargados con incidencias.';
+          } else {
+            statusEl.textContent = 'Datos actualizados correctamente.';
+          }
+        }
+      }
+    }
+
+    loadCard();
+  });
+})();
+
+(function initHomeCatalog() {
+  const grid = $('#homeProducts');
+  if (!grid) return;
+
+  const messageEl = $('#homeProductsMessage');
+  const categorySelect = $('#homeCategoryFilter');
+  const sportSelect = $('#homeSportFilter');
+  const availabilitySelect = $('#homeAvailabilityFilter');
+  const searchInput = $('#searchInput');
+  const placeholderImage = 'https://images.unsplash.com/photo-1508609349937-5ec4ae374ebf?auto=format&fit=crop&w=700&q=80';
+  const suggestionControl = setupSearchSuggestions(searchInput);
+  let currentSearch = '';
+
+  function renderProducts(products = []) {
+    grid.innerHTML = '';
+    products.forEach((product) => {
+      const card = document.createElement('article');
+      card.className = 'product-card';
+      card.dataset.productId = product.id;
+
+      const image = document.createElement('img');
+      image.className = 'product-card__image';
+      image.src = product.imagen_url || placeholderImage;
+      image.alt = product.nombre || 'Producto Sport4Data';
+      card.appendChild(image);
+
+      const title = document.createElement('h3');
+      title.className = 'product-card__title';
+      title.textContent = product.nombre || 'Producto Sport4Data';
+      card.appendChild(title);
+
+      const price = document.createElement('p');
+      price.className = 'product-card__price';
+      price.textContent = formatCurrency(product.precio);
+      card.appendChild(price);
+
+      const meta = document.createElement('p');
+      meta.className = 'product-card__meta';
+      const metaParts = [];
+      if (product.marca) {
+        metaParts.push(product.marca);
+      }
+      if (product.deporte) {
+        metaParts.push(formatSportLabel(product.deporte));
+      }
+      if (product.categoria) {
+        metaParts.push(product.categoria);
+      }
+      meta.textContent = metaParts.join(' · ') || 'Sin categoria';
+      card.appendChild(meta);
+
+      const badges = document.createElement('div');
+      badges.className = 'product-card__badges';
+
+      const availability = document.createElement('span');
+      availability.className = `badge ${product.disponible ? 'badge--ok' : 'badge--warn'}`;
+      availability.textContent = product.disponible ? 'Disponible' : 'No disponible';
+      badges.appendChild(availability);
+
+      if (typeof product.stock === 'number') {
+        const stock = document.createElement('span');
+        stock.className = 'badge';
+        stock.textContent = `Stock: ${product.stock}`;
+        badges.appendChild(stock);
+      }
+
+      card.appendChild(badges);
+
+      const description = document.createElement('p');
+      description.className = 'product-card__description';
+      description.textContent = product.descripcion || 'Sin descripcion disponible.';
+      card.appendChild(description);
+
+      grid.appendChild(card);
+    });
+  }
+
+  async function loadProducts(options = {}) {
+    if (typeof options.search === 'string') {
+      currentSearch = options.search.trim();
+    }
+
+    const params = {
+      limit: 12,
+      categoria: categorySelect && categorySelect.value !== 'all' ? categorySelect.value : undefined,
+      deporte: sportSelect && sportSelect.value !== 'all' ? sportSelect.value : undefined,
+      disponible: availabilitySelect && availabilitySelect.value !== 'all' ? availabilitySelect.value : undefined,
+      search: currentSearch || undefined,
+    };
+
+    if (messageEl) {
+      if (currentSearch) {
+        messageEl.textContent = `Buscando "${currentSearch}"...`;
+      } else {
+        messageEl.textContent = 'Cargando productos disponibles...';
+      }
+    }
+
+    try {
+      const payload = await apiRequest(`/products${buildQueryString(params)}`);
+      const products = payload?.data || payload || [];
+      renderProducts(products);
+      if (messageEl) {
+        if (products.length) {
+          const prefix = currentSearch
+            ? `Resultados para "${currentSearch}"`
+            : 'Mostrando productos disponibles';
+          messageEl.textContent = `${prefix}: ${products.length}`;
+        } else if (currentSearch) {
+          messageEl.textContent = `No hay resultados para "${currentSearch}".`;
+        } else {
+          messageEl.textContent = 'No hay productos para los filtros seleccionados.';
+        }
+      }
+    } catch (error) {
+      grid.innerHTML = '';
+      if (messageEl) {
+        messageEl.textContent = error.message || 'No se pudo cargar el catálogo.';
+      }
+    }
+  }
+
+  const handleFilters = () => loadProducts();
+  [categorySelect, sportSelect, availabilitySelect].forEach((select) => {
+    if (select) {
+      select.addEventListener('change', handleFilters);
+    }
+  });
+
+  if (searchInput) {
+    const debouncedSearch = debounce(() => {
+      loadProducts({ search: searchInput.value });
+    }, 300);
+    searchInput.addEventListener('input', () => debouncedSearch());
+    searchInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+      }
+    });
+  }
+
+  loadProducts();
+})();
+
+(function initCategoryPage() {
+  const view = document.querySelector('[data-category-view]');
+  if (!view) return;
+
+  const sport = (getURLParam('sport', 'running') || 'running').toLowerCase();
+  const friendlyNames = {
+    running: 'Running',
+    montana: 'Montaña',
+    futbol: 'Fútbol',
+    ciclismo: 'Ciclismo',
+    baloncesto: 'Baloncesto',
+  };
+
+  const titleEl = $('#categoryTitle');
+  const eyebrowEl = $('#categoryEyebrow');
+  const descriptionEl = $('#categoryDescription');
+  const messageEl = $('#categoryMessage');
+  const grid = $('#categoryProducts');
+  const typeSelect = $('#categoryTypeFilter');
+  const availabilitySelect = $('#categoryAvailabilityFilter');
+  const searchInput = $('#searchInputCategory');
+  const suggestionControl = setupSearchSuggestions(searchInput);
+  const placeholderImage = 'https://images.unsplash.com/photo-1508609349937-5ec4ae374ebf?auto=format&fit=crop&w=700&q=80';
+
+  const sportLabel = friendlyNames[sport] || sport.charAt(0).toUpperCase() + sport.slice(1);
+
+  if (titleEl) {
+    titleEl.textContent = `Colección ${sportLabel}`;
+  }
+  if (eyebrowEl) {
+    eyebrowEl.textContent = `Colección ${sportLabel}`;
+  }
+  if (descriptionEl) {
+    descriptionEl.textContent = `Estos son los productos disponibles para ${sportLabel}. Usa los filtros para afinar la búsqueda.`;
+  }
+
+  let currentSearch = '';
+
+  function renderCategoryProducts(products = []) {
+    grid.innerHTML = '';
+    if (!products.length) {
+      const empty = document.createElement('p');
+      empty.className = 'product-card__description';
+      empty.textContent = 'No hay productos disponibles para esta combinación.';
+      grid.appendChild(empty);
+      return;
+    }
+
+    products.forEach((product) => {
+      const card = document.createElement('article');
+      card.className = 'product-card';
+      card.dataset.productId = product.id;
+
+      const image = document.createElement('img');
+      image.className = 'product-card__image';
+      image.src = product.imagen_url || 'https://images.unsplash.com/photo-1508609349937-5ec4ae374ebf?auto=format&fit=crop&w=700&q=80';
+      image.alt = product.nombre || 'Producto Sport4Data';
+      card.appendChild(image);
+
+      const title = document.createElement('h3');
+      title.className = 'product-card__title';
+      title.textContent = product.nombre || 'Producto Sport4Data';
+      card.appendChild(title);
+
+      const price = document.createElement('p');
+      price.className = 'product-card__price';
+      price.textContent = formatCurrency(product.precio);
+      card.appendChild(price);
+
+      const meta = document.createElement('p');
+      meta.className = 'product-card__meta';
+      const pieces = [];
+      if (product.marca) pieces.push(product.marca);
+      if (product.categoria) pieces.push(product.categoria);
+      if (product.color) pieces.push(product.color);
+      meta.textContent = pieces.join(' · ') || 'Sin categoría';
+      card.appendChild(meta);
+
+      const badges = document.createElement('div');
+      badges.className = 'product-card__badges';
+
+      const availability = document.createElement('span');
+      availability.className = `badge ${product.disponible ? 'badge--ok' : 'badge--warn'}`;
+      availability.textContent = product.disponible ? 'Disponible' : 'No disponible';
+      badges.appendChild(availability);
+
+      if (typeof product.stock === 'number') {
+        const stock = document.createElement('span');
+        stock.className = 'badge';
+        stock.textContent = `Stock: ${product.stock}`;
+        badges.appendChild(stock);
+      }
+
+      card.appendChild(badges);
+
+      const description = document.createElement('p');
+      description.className = 'product-card__description';
+      description.textContent = product.descripcion || 'Sin descripción disponible.';
+      card.appendChild(description);
+
+      grid.appendChild(card);
+    });
+  }
+
+  async function loadCategoryProducts(options = {}) {
+    if (typeof options.search === 'string') {
+      currentSearch = options.search.trim();
+    }
+    const query = {
+      deporte: sport,
+      categoria: typeSelect && typeSelect.value !== 'all' ? typeSelect.value : undefined,
+      disponible: availabilitySelect && availabilitySelect.value !== 'all' ? availabilitySelect.value : undefined,
+      search: currentSearch || undefined,
+      limit: 60,
+    };
+
+    if (messageEl) {
+      messageEl.textContent = currentSearch
+        ? `Buscando "${currentSearch}"...`
+        : `Cargando productos de ${sportLabel}...`;
+    }
+
+    try {
+      const payload = await apiRequest(`/products${buildQueryString(query)}`);
+      const products = payload?.data || payload || [];
+      renderCategoryProducts(products);
+      if (messageEl) {
+        messageEl.textContent = products.length
+          ? `${products.length} productos encontrados`
+          : 'No hay productos para esta selección.';
+      }
+    } catch (error) {
+      grid.innerHTML = '';
+      if (messageEl) {
+        messageEl.textContent = error.message || 'No se pudo cargar el catálogo.';
+      }
+    }
+  }
+
+  [typeSelect, availabilitySelect].forEach((select) => {
+    if (select) {
+      select.addEventListener('change', () => loadCategoryProducts());
+    }
+  });
+
+  if (searchInput) {
+    const debouncedCategorySearch = debounce(() => {
+      loadCategoryProducts({ search: searchInput.value });
+    }, 300);
+    searchInput.addEventListener('input', () => debouncedCategorySearch());
+    searchInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+      }
+    });
+  }
+
+  loadCategoryProducts();
+})();
+
+(function initProductDetailModal() {
+  const modal = $('#productModal');
+  if (!modal) return;
+
+  const imageEl = $('#productDetailImage');
+  const categoryEl = $('#productDetailCategory');
+  const nameEl = $('#productDetailName');
+  const brandEl = $('#productDetailBrand');
+  const descriptionEl = $('#productDetailDescription');
+  const priceEl = $('#productDetailPrice');
+  const stockEl = $('#productDetailStock');
+  const sportEl = $('#productDetailSport');
+  const colorEl = $('#productDetailColor');
+  const availabilityEl = $('#productDetailAvailability');
+  const placeholderImage = 'https://images.unsplash.com/photo-1487958449943-2429e8be8625?auto=format&fit=crop&w=700&q=80';
+
+  const closeModal = () => {
+    modal.setAttribute('hidden', 'true');
+    updateBodyModalState();
+  };
+
+  const openModal = () => {
+    modal.removeAttribute('hidden');
+    updateBodyModalState();
+  };
+
+  modal.addEventListener('click', (event) => {
+    const closer = event.target && typeof event.target.closest === 'function'
+      ? event.target.closest('[data-close-product]')
+      : null;
+    if (closer) {
+      closeModal();
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !modal.hasAttribute('hidden')) {
+      closeModal();
+    }
+  });
+
+  function setLoadingState(message) {
+    if (nameEl) {
+      nameEl.textContent = message;
+    }
+    if (descriptionEl) {
+      descriptionEl.textContent = '';
+    }
+    if (brandEl) {
+      brandEl.textContent = '';
+    }
+    if (categoryEl) {
+      categoryEl.textContent = '';
+    }
+    if (priceEl) {
+      priceEl.textContent = '';
+    }
+    if (stockEl) {
+      stockEl.textContent = '';
+    }
+    if (sportEl) {
+      sportEl.textContent = '';
+    }
+    if (colorEl) {
+      colorEl.textContent = '';
+    }
+    if (availabilityEl) {
+      availabilityEl.textContent = '';
+    }
+    if (imageEl) {
+      imageEl.src = placeholderImage;
+      imageEl.alt = 'Producto Sport4Data';
+    }
+  }
+
+  function renderProduct(product) {
+    if (imageEl) {
+      imageEl.src = product.imagen_url || placeholderImage;
+      imageEl.alt = product.nombre || 'Producto Sport4Data';
+    }
+    if (categoryEl) {
+      categoryEl.textContent = `${product.categoria || 'Sin categoria'} · ${formatSportLabel(product.deporte) || '-'}`;
+    }
+    if (nameEl) {
+      nameEl.textContent = product.nombre || 'Producto sport4data';
+    }
+    if (brandEl) {
+      brandEl.textContent = product.marca ? `Marca: ${product.marca}` : '';
+    }
+    if (descriptionEl) {
+      descriptionEl.textContent = product.descripcion || 'Sin descripcion disponible.';
+    }
+    if (priceEl) {
+      priceEl.textContent = formatCurrency(product.precio);
+    }
+    if (stockEl) {
+      stockEl.textContent = typeof product.stock === 'number' ? `${product.stock} uds` : '-';
+    }
+    if (sportEl) {
+      sportEl.textContent = formatSportLabel(product.deporte) || '-';
+    }
+    if (colorEl) {
+      colorEl.textContent = product.color || '-';
+    }
+    if (availabilityEl) {
+      availabilityEl.textContent = product.disponible ? 'Disponible' : 'No disponible';
+    }
+  }
+
+  async function loadProduct(id) {
+    if (!id) return;
+    openModal();
+    setLoadingState('Cargando producto...');
+    try {
+      const payload = await apiRequest(`/products/${id}`);
+      const product = payload?.data || payload;
+      if (!product) {
+        throw new Error('Producto no encontrado');
+      }
+      renderProduct(product);
+    } catch (error) {
+      setLoadingState(error.message || 'No se pudo cargar el producto.');
+    }
+  }
+
+  document.addEventListener('sd:product-detail', (event) => {
+    const productId = event.detail?.id;
+    if (productId) {
+      loadProduct(productId);
+    }
+  });
+
+  ['#homeProducts', '#categoryProducts'].forEach((selector) => {
+    const grid = document.querySelector(selector);
+    if (!grid) return;
+    grid.addEventListener('click', (event) => {
+      const card = event.target && typeof event.target.closest === 'function'
+        ? event.target.closest('[data-product-id]')
+        : null;
+      if (!card) return;
+      const { productId } = card.dataset;
+      if (productId) {
+        document.dispatchEvent(new CustomEvent('sd:product-detail', {
+          detail: { id: productId },
+        }));
+      }
+    });
+  });
+})();
 
 (function initLogin() {
   const form = $('#loginForm');

@@ -7,7 +7,7 @@ services:
     volumes:
       - mongo_data:/data/db
     ports:
-      - "27018:27017"
+      - "127.0.0.1:27018:27017"
 
   user-service:
     build:
@@ -21,7 +21,7 @@ services:
     depends_on:
       - mongo
     ports:
-      - "4001:4001"
+      - "127.0.0.1:4001:4001"
 
   api-gateway:
     build:
@@ -31,11 +31,41 @@ services:
       NODE_ENV: production
       PORT: 5000
       USER_SERVICE_URL: http://user-service:4001/api
+      PRODUCT_SERVICE_URL: http://product-service:8002
       JWT_SECRET: ${JWT_SECRET:-sportdata-dev-secret}
     depends_on:
       - user-service
+      - product-service
     ports:
-      - "5000:5000"
+      - "127.0.0.1:5000:5000"
+
+  products-db:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: sport4data
+      POSTGRES_USER: sport4data
+      POSTGRES_PASSWORD: sport4data
+    volumes:
+      - products_pgdata:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
+
+  product-service:
+    build:
+      context: ./microservicioProductos
+    restart: unless-stopped
+    environment:
+      PRODUCTS_DATABASE_URL: postgresql+psycopg://sport4data:sport4data@products-db:5432/sport4data
+      PRODUCTS_STATIC_DIR: /app/static
+      # Usamos 127.0.0.1 para evitar problemas de resolución IPv6 con "localhost"
+      PRODUCTS_STATIC_BASE_URL: http://127.0.0.1:8002/static
+    depends_on:
+      - products-db
+    volumes:
+      - ./static:/app/static:ro
+    ports:
+      - "127.0.0.1:8002:8002"
 
   frontend:
     image: nginx:alpine
@@ -43,9 +73,11 @@ services:
     volumes:
       - ./web:/usr/share/nginx/html:ro
     ports:
-      - "8080:80"
+      # Fijamos el bind a IPv4 para que "localhost" resuelva sin resets en Windows/WSL2
+      - "127.0.0.1:8080:80"
     depends_on:
       - api-gateway
 
 volumes:
   mongo_data:
+  products_pgdata:

@@ -6,6 +6,12 @@ const userServiceClient = axios.create({
   timeout: 8000,
 });
 
+const productServiceClient = axios.create({
+  baseURL: services.product,
+  timeout: 8000,
+});
+
 module.exports = {
   userServiceClient,
+  productServiceClient,
 };

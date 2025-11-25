@@ -1,15 +1,15 @@
 ﻿:root{
-  --bg-1:#dfe3ed;           /* fondo principal claro */
-  --bg-2:#eef0f6;           /* tarjetas */
-  --text-1:#1f2230;         /* texto principal */
-  --text-2:#5b6072;         /* texto secundario */
-  --brand:#ff8a00;          /* naranja botÃ³n */
+  --bg-1:#1f2230;           /* fondo principal oscuro */
+  --bg-2:#26293a;           /* tarjetas */
+  --text-1:#e8ecf1;         /* texto principal */
+  --text-2:#a7afc3;         /* texto secundario */
+  --brand:#ff8a00;          /* naranja botón */
   --brand-2:#ffa73d;
   --danger:#ff5b66;
   --ok:#19c37d;
-  --outline: #cfd4e6;
+  --outline: #3a3f55;
   --radius: 12px;
-  --shadow: 0 18px 45px rgba(31,34,48,.12);
+  --shadow: 0 10px 30px rgba(0,0,0,.35);
 }
 
 *{box-sizing:border-box}
@@ -29,7 +29,7 @@ body.modal-open{
 /* Header */
 .sd-header{
   border-bottom:1px solid var(--outline);
-  background:linear-gradient(180deg, #fdfdff, #e9ecf7 70%);
+  background:linear-gradient(180deg, #202334, #1b1e2c 70%);
   position:sticky; top:0; z-index:50;
 }
 .sd-header__inner{
@@ -49,7 +49,7 @@ body.modal-open{
 }
 .sd-search{flex:1; display:flex; gap:8px; align-items:center; position:relative}
 .sd-search input{
-  width:100%; background:var(--bg-2); color:var(--text-1);
+  width:100%; background:#121522; color:var(--text-1);
   border:1px solid var(--outline); border-radius:999px; padding:12px 18px;
 }
 .search-suggestions{
@@ -100,7 +100,7 @@ body.modal-open{
   font-size:0.82rem;
 }
 .icon-btn{
-  background:var(--bg-2); color:var(--text-1); border:1px solid var(--outline);
+  background:#121522; color:var(--text-1); border:1px solid var(--outline);
   width:38px; height:38px; border-radius:999px; cursor:pointer;
 }
 .icon-btn--icon{
@@ -162,7 +162,7 @@ body.modal-open{
 .field label{display:block; font-weight:600; margin-bottom:8px}
 .field input, .field select{
   width:100%; padding:14px 14px; border-radius:10px;
-  background:var(--bg-2); color:var(--text-1);
+  background:#121522; color:var(--text-1);
   border:1px solid var(--outline); outline:none; transition:border-color .15s ease, box-shadow .15s ease;
 }
 .field input:focus, .field select:focus{
@@ -204,7 +204,7 @@ body.modal-open{
 /* Toast (ligero) */
 .toast{
   position:fixed; left:50%; bottom:24px; transform:translateX(-50%);
-  background:var(--bg-2); color:var(--text-1); border:1px solid var(--outline);
+  background:#121522; color:var(--text-1); border:1px solid var(--outline);
   padding:12px 16px; border-radius:9px; box-shadow:var(--shadow); z-index:100;
   display:none;
 }
@@ -254,7 +254,7 @@ body.modal-open{
   padding:16px 18px;
   border-radius:12px;
   border:1px solid var(--outline);
-  background:var(--bg-2);
+  background:#121522;
   color:var(--text-1);
   font-size:1.05rem;
 }
@@ -312,7 +312,7 @@ body.modal-open{
   border-collapse:collapse;
 }
 .sd-table thead{
-  background:rgba(248,249,255,0.8);
+  background:rgba(18,21,34,0.8);
 }
 .sd-table thead th{
   text-align:left;
@@ -323,8 +323,8 @@ body.modal-open{
 }
 .sd-table tbody td{
   padding:14px 18px;
-  border-bottom:1px solid rgba(223,228,245,0.9);
-  background:rgba(250,250,255,0.65);
+  border-bottom:1px solid rgba(58,63,85,0.35);
+  background:rgba(18,21,34,0.45);
   vertical-align:top;
 }
 .sd-table tbody tr:last-child td{
@@ -351,7 +351,7 @@ body.modal-open{
 }
 
 .category-hero{
-  background:linear-gradient(135deg, rgba(244,246,253,0.95), rgba(227,230,242,0.9));
+  background:linear-gradient(135deg, rgba(33,34,50,0.95), rgba(20,22,33,0.9));
   border:1px solid var(--outline);
   border-radius:var(--radius);
   padding:32px;
@@ -392,7 +392,7 @@ body.modal-open{
   grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));
   gap:32px;
   align-items:center;
-  background:linear-gradient(135deg, rgba(243,245,252,0.95), rgba(224,227,240,0.85));
+  background:linear-gradient(135deg, rgba(32,35,52,0.95), rgba(33,42,68,0.85));
   border:1px solid var(--outline);
   border-radius:var(--radius);
   padding:32px;
@@ -424,7 +424,7 @@ body.modal-open{
   border-radius:var(--radius);
   object-fit:cover;
   min-height:260px;
-  box-shadow:0 20px 50px rgba(31,34,48,0.15);
+  box-shadow:0 20px 50px rgba(0,0,0,0.25);
 }
 
 .home-highlight{
@@ -595,7 +595,7 @@ body.modal-open{
   height:140px;
   object-fit:cover;
   border-radius:12px;
-  background:var(--bg-1);
+  background:#0f101a;
 }
 .product-card__title{
   margin:0;
@@ -745,6 +745,17 @@ body.modal-open{
     grid-template-columns:1fr;
   }
 }
+
+
+
+
+
+
+
+
+
+
+
 
 
 

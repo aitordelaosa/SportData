@@ -13,6 +13,7 @@ const config = {
   },
   services: {
     user: process.env.USER_SERVICE_URL || 'http://localhost:4001/api',
+    product: process.env.PRODUCT_SERVICE_URL || 'http://localhost:8010',
   },
 };
 

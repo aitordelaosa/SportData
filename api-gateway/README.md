@@ -1,13 +1,14 @@
 ## API Gateway
 
-Punto de entrada para el frontend web de SportData. Centraliza las peticiones hacia el microservicio de usuarios y aplica verificación básica de tokens JWT antes de reenviarlas.
+Punto de entrada para el frontend web de SportData. Este servicio centraliza las peticiones hacia los microservicios (usuarios y productos) y aplica una verificacion basica de tokens JWT antes de reenviarlas.
 
 ### Requisitos
 
 - Node.js 18 o superior
-- Microservicio de usuarios ejecutándose (por defecto en `http://localhost:4001/api`)
+- Microservicio de usuarios levantado (por defecto `http://localhost:4001/api`)
+- Microservicio de productos levantado (por defecto `http://localhost:8002`)
 
-### Configuración
+### Configuracion
 
 1. Instala las dependencias:
    ```bash
@@ -15,32 +16,34 @@ Punto de entrada para el frontend web de SportData. Centraliza las peticiones ha
    ```
 2. Copia el archivo de entorno y ajusta los valores:
    ```bash
-  cp .env.example .env
+   cp .env.example .env
    ```
-   - `PORT`: Puerto en el que escuchará el gateway (default `5000`).
+   - `PORT`: Puerto donde escuchara el gateway (default `5000`).
    - `USER_SERVICE_URL`: URL base del microservicio de usuarios.
-   - `JWT_SECRET`: Debe coincidir con el usado por el microservicio para validar tokens.
+   - `PRODUCT_SERVICE_URL`: URL base del microservicio FastAPI de productos.
+   - `JWT_SECRET`: Debe coincidir con el usado por el microservicio de usuarios para validar tokens.
 
-### Ejecución
+### Ejecucion
 
 ```bash
-npm run dev    # con recarga automática
+npm run dev    # con recarga automatica
 # o
 npm start
 ```
 
 ### Uso mediante Docker
 
-- El gateway se construye automáticamente desde el `Dockerfile` cuando ejecutas `docker compose up --build -d` en la raíz del proyecto.
-- Asegúrate de que el microservicio de usuarios y el gateway compartan el mismo `JWT_SECRET`; puedes definirlo en un archivo `.env` en la raíz (`JWT_SECRET=<valor>`).
+- El gateway se construye automaticamente desde el `Dockerfile` cuando ejecutas `docker compose up --build -d` en la raiz del proyecto.
+- Asegurate de que los microservicios y el gateway compartan el mismo `JWT_SECRET`; puedes definirlo en un archivo `.env` en la raiz (`JWT_SECRET=<valor>`).
 
-El endpoint de salud se encuentra en `GET /health`. Las rutas expuestas para el frontend están bajo `/api`, por ejemplo:
+El endpoint de salud se encuentra en `GET /health`. Las rutas expuestas para el frontend estan bajo `/api`, por ejemplo:
 
 - `POST /api/auth/register`
 - `POST /api/auth/login`
 - `GET /api/users/me` (requiere cabecera `Authorization: Bearer <token>`)
 - `PUT /api/users/me` (requiere cabecera `Authorization`)
+- `GET /api/products` y `GET /api/products/:id` (catalogo proveniente del microservicio FastAPI)
 
 ### Flujo del Frontend
 
-El frontend estático (`web/`) utiliza `fetch` contra el gateway (`http://localhost:5000/api`). Ajusta `API_BASE_URL` en producción si el gateway se despliega con otra URL.
+El frontend estatico (`web/`) utiliza `fetch` contra el gateway (`http://localhost:5000/api`). Ajusta `API_BASE_URL` en produccion si el gateway se despliega con otra URL.
