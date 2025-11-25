@@ -275,23 +275,6 @@ function formatCurrency(value) {
   return currencyFormatter.format(numericValue);
 }
 
-const SPORT_LABELS = {
-  running: 'Running',
-  montana: 'Montaña',
-  futbol: 'Fútbol',
-  ciclismo: 'Ciclismo',
-  baloncesto: 'Baloncesto',
-  natacion: 'Natación',
-  crossfit: 'Crossfit',
-  tenis: 'Tenis',
-};
-
-function formatSportLabel(value) {
-  if (!value) return '';
-  const key = String(value).toLowerCase();
-  return SPORT_LABELS[key] || value;
-}
-
 function updateBodyModalState() {
   const openModals = document.querySelectorAll('.modal:not([hidden])').length;
   if (openModals > 0) {
@@ -563,7 +546,7 @@ function renderUsers(users = []) {
         metaParts.push(product.marca);
       }
       if (product.deporte) {
-        metaParts.push(formatSportLabel(product.deporte));
+        metaParts.push(product.deporte);
       }
       if (product.categoria) {
         metaParts.push(product.categoria);
@@ -671,7 +654,7 @@ function renderUsers(users = []) {
   const sport = (getURLParam('sport', 'running') || 'running').toLowerCase();
   const friendlyNames = {
     running: 'Running',
-    montana: 'Montaña',
+    montaña: 'Montaña',
     futbol: 'Fútbol',
     ciclismo: 'Ciclismo',
     baloncesto: 'Baloncesto',
@@ -905,7 +888,7 @@ function renderUsers(users = []) {
       imageEl.alt = product.nombre || 'Producto Sport4Data';
     }
     if (categoryEl) {
-      categoryEl.textContent = `${product.categoria || 'Sin categoria'} · ${formatSportLabel(product.deporte) || '-'}`;
+      categoryEl.textContent = `${product.categoria || 'Sin categoria'} · ${product.deporte || '-'}`;
     }
     if (nameEl) {
       nameEl.textContent = product.nombre || 'Producto sport4data';
@@ -923,7 +906,7 @@ function renderUsers(users = []) {
       stockEl.textContent = typeof product.stock === 'number' ? `${product.stock} uds` : '-';
     }
     if (sportEl) {
-      sportEl.textContent = formatSportLabel(product.deporte) || '-';
+      sportEl.textContent = product.deporte || '-';
     }
     if (colorEl) {
       colorEl.textContent = product.color || '-';
