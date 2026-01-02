@@ -18,6 +18,7 @@ function authenticate(req, res, next) {
   try {
     const decoded = jwt.verify(token, app.jwtSecret);
     req.user = decoded;
+    req.token = token;
     return next();
   } catch (error) {
     return res.status(401).json({ message: 'Token invalido o expirado' });

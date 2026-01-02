@@ -21,13 +21,13 @@
       </div>
 
       <nav class="sd-icons">
-        <button class="icon-btn icon-btn--icon" type="button" aria-label="Favoritos" title="Favoritos">
+        <button class="icon-btn icon-btn--icon" type="button" aria-label="Favoritos" title="Favoritos" id="favoritesButton">
           <img class="sd-icon" src="../images/icon-heart.svg" alt="" />
         </button>
-        <button class="icon-btn icon-btn--icon" type="button" aria-label="Carrito" title="Carrito">
+        <button class="icon-btn icon-btn--icon" type="button" aria-label="Carrito" title="Carrito" id="cartButton">
           <img class="sd-icon" src="../images/icon-cart.svg" alt="" />
         </button>
-        <button class="icon-btn icon-btn--icon" type="button" aria-label="Perfil" title="Perfil">
+        <button class="icon-btn icon-btn--icon" type="button" aria-label="Perfil" title="Perfil" id="profileButton">
           <img class="sd-icon" src="../images/icon-user.svg" alt="" />
         </button>
       </nav>
@@ -62,12 +62,37 @@
 
       <div class="profile-grid" id="profileRows" aria-live="polite"></div>
     </section>
+
+    <section class="auth-card auth-card--list" id="usersSection" hidden>
+      <h2 class="auth-card__title">USUARIOS REGISTRADOS</h2>
+      <p class="auth-card__subtitle" id="usersSectionMessage"></p>
+
+      <div class="table-wrap">
+        <table class="sd-table">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Email</th>
+              <th>Dirección</th>
+              <th>Rol</th>
+              <th>Registro</th>
+            </tr>
+          </thead>
+          <tbody id="usersTableBody"></tbody>
+        </table>
+      </div>
+      <div class="users-pagination" id="usersPagination" hidden>
+        <button class="btn btn--ghost users-pagination__btn" type="button" id="prevUsersBtn">Anterior</button>
+        <span id="usersPageInfo" class="users-pagination__info"></span>
+        <button class="btn btn--ghost users-pagination__btn" type="button" id="nextUsersBtn">Siguiente</button>
+      </div>
+    </section>
   </main>
 
   <footer class="sd-footer">
     <small>&copy; SportData - Demo UI</small>
   </footer>
 
-  <script src="../js/app.js" defer></script>
+  <script src="../js/app.js?v=2" defer></script>
 </body>
 </html>

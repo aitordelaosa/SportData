@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SportData | Finaliza tu compra</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/stilo.css" />
+</head>
+<body class="theme-dark">
+  <header class="sd-header">
+    <div class="sd-header__inner">
+      <a class="sd-logo" href="index.html">
+        <img class="sd-logo__img" src="../images/Logo.png" alt="SportData" />
+      </a>
+
+      <div class="sd-search">
+        <input type="search" placeholder="Buscar productos..." aria-label="Buscar" id="searchInputCheckout" />
+      </div>
+
+      <nav class="sd-icons">
+        <button class="icon-btn icon-btn--icon" type="button" aria-label="Favoritos" title="Favoritos" id="favoritesButton">
+          <img class="sd-icon" src="../images/icon-heart.svg" alt="" />
+        </button>
+        <button class="icon-btn icon-btn--icon" type="button" aria-label="Carrito" title="Carrito" id="cartButton">
+          <img class="sd-icon" src="../images/icon-cart.svg" alt="" />
+        </button>
+        <button class="icon-btn icon-btn--icon" type="button" aria-label="Perfil" title="Iniciar sesión" id="profileButton">
+          <img class="sd-icon" src="../images/icon-user.svg" alt="" />
+        </button>
+      </nav>
+    </div>
+
+    <div class="sd-tabs">
+      <a href="category.html?sport=running" class="tab">RUNNING</a>
+      <a href="category.html?sport=montana" class="tab">MONTAÑA</a>
+      <a href="category.html?sport=futbol" class="tab">FÚTBOL</a>
+      <a href="category.html?sport=ciclismo" class="tab">CICLISMO</a>
+      <a href="category.html?sport=baloncesto" class="tab">BALONCESTO</a>
+    </div>
+  </header>
+
+  <main class="category-layout" data-checkout-view>
+    <section class="home-section checkout">
+      <header class="home-section__header">
+        <div>
+          <p class="breadcrumb"><a href="cart.html">Carrito</a> / Checkout</p>
+          <h2>Entrega y pago</h2>
+          <p id="checkoutMessage">Revisa tus datos de envío y pago antes de confirmar.</p>
+        </div>
+        <div class="checkout-badges">
+          <span class="badge">Paso 1: Envío</span>
+          <span class="badge">Paso 2: Pago</span>
+        </div>
+      </header>
+
+      <div class="checkout-grid">
+        <form class="checkout-card" id="checkoutForm" novalidate>
+          <div class="form-block">
+            <div class="form-block__header">
+              <h3>Entrega a domicilio</h3>
+              <span class="form-block__tag">Datos de envío para la entrega del pedido</span>
+            </div>
+
+            <div class="grid-3">
+              <div class="field">
+                <label for="shippingFirstName">Nombre *</label>
+                <input id="shippingFirstName" autocomplete="given-name" required />
+                <div class="field__error" data-error-for="shippingFirstName"></div>
+              </div>
+              <div class="field">
+                <label for="shippingLastName">Primer apellido *</label>
+                <input id="shippingLastName" autocomplete="family-name" required />
+                <div class="field__error" data-error-for="shippingLastName"></div>
+              </div>
+              <div class="field">
+                <label for="shippingLastName2">Segundo apellido</label>
+                <input id="shippingLastName2" autocomplete="additional-name" />
+                <div class="field__error" data-error-for="shippingLastName2"></div>
+              </div>
+            </div>
+
+            <div class="grid-2">
+              <div class="field">
+                <label for="shippingAddress">Dirección (Calle, portal y piso) *</label>
+                <input id="shippingAddress" autocomplete="street-address" required />
+                <div class="field__error" data-error-for="shippingAddress"></div>
+              </div>
+              <div class="field">
+                <label for="shippingCity">Ciudad *</label>
+                <input id="shippingCity" autocomplete="address-level2" required />
+                <div class="field__error" data-error-for="shippingCity"></div>
+              </div>
+            </div>
+
+            <div class="grid-3">
+              <div class="field">
+                <label for="shippingPostalCode">CP *</label>
+                <input id="shippingPostalCode" inputmode="numeric" autocomplete="postal-code" required />
+                <div class="field__error" data-error-for="shippingPostalCode"></div>
+              </div>
+              <div class="field">
+                <label for="shippingProvince">Provincia *</label>
+                <input id="shippingProvince" autocomplete="address-level1" required />
+                <div class="field__error" data-error-for="shippingProvince"></div>
+              </div>
+              <div class="field">
+                <label for="shippingCountry">País *</label>
+                <select id="shippingCountry" required>
+                  <option value="España Península">España Península</option>
+                  <option value="Islas Baleares">Islas Baleares</option>
+                  <option value="Islas Canarias">Islas Canarias</option>
+                  <option value="Portugal">Portugal</option>
+                  <option value="Francia">Francia</option>
+                  <option value="Otro">Otro</option>
+                </select>
+                <div class="field__error" data-error-for="shippingCountry"></div>
+              </div>
+            </div>
+
+            <div class="grid-2">
+              <div class="field">
+                <label for="shippingPhone">Teléfono móvil *</label>
+                <input id="shippingPhone" type="tel" autocomplete="tel-national" required />
+                <div class="field__error" data-error-for="shippingPhone"></div>
+              </div>
+              <div class="field">
+                <label for="shippingEmail">Email *</label>
+                <input id="shippingEmail" type="email" autocomplete="email" required />
+                <div class="field__error" data-error-for="shippingEmail"></div>
+              </div>
+            </div>
+
+            <div class="grid-2">
+              <div class="field">
+                <label for="shippingNotes">Instrucciones de entrega</label>
+                <input id="shippingNotes" placeholder="Ej.: Llamar al timbre 2A" />
+                <div class="field__error" data-error-for="shippingNotes"></div>
+              </div>
+              <div class="field">
+                <label for="shippingBirth">Fecha de nacimiento</label>
+                <input id="shippingBirth" type="date" autocomplete="bday" />
+                <div class="field__error" data-error-for="shippingBirth"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-block">
+            <div class="form-block__header">
+              <h3>Método de pago</h3>
+              <span class="form-block__tag">Tarjeta de débito o crédito</span>
+            </div>
+
+            <div class="card-logos" aria-hidden="true">
+              <span>VISA</span>
+              <span>MasterCard</span>
+              <span>Maestro</span>
+              <span>Discover</span>
+              <span>Amex</span>
+            </div>
+
+            <div class="field">
+              <label for="cardHolder">Nombre del titular *</label>
+              <input id="cardHolder" autocomplete="cc-name" required />
+              <div class="field__error" data-error-for="cardHolder"></div>
+            </div>
+
+            <div class="field">
+              <label for="cardNumber">Número de la tarjeta *</label>
+              <input id="cardNumber" inputmode="numeric" autocomplete="cc-number" required />
+              <div class="field__error" data-error-for="cardNumber"></div>
+            </div>
+
+            <div class="grid-3">
+              <div class="field">
+                <label for="cardExpMonth">Mes caducidad *</label>
+                <select id="cardExpMonth" autocomplete="cc-exp-month" required>
+                  <option value="">Mes</option>
+                  <option value="01">Enero (01)</option>
+                  <option value="02">Febrero (02)</option>
+                  <option value="03">Marzo (03)</option>
+                  <option value="04">Abril (04)</option>
+                  <option value="05">Mayo (05)</option>
+                  <option value="06">Junio (06)</option>
+                  <option value="07">Julio (07)</option>
+                  <option value="08">Agosto (08)</option>
+                  <option value="09">Septiembre (09)</option>
+                  <option value="10">Octubre (10)</option>
+                  <option value="11">Noviembre (11)</option>
+                  <option value="12">Diciembre (12)</option>
+                </select>
+                <div class="field__error" data-error-for="cardExpMonth"></div>
+              </div>
+              <div class="field">
+                <label for="cardExpYear">Año *</label>
+                <select id="cardExpYear" autocomplete="cc-exp-year" required></select>
+                <div class="field__error" data-error-for="cardExpYear"></div>
+              </div>
+              <div class="field">
+                <label for="cardCvv">CVV *</label>
+                <input id="cardCvv" inputmode="numeric" autocomplete="cc-csc" required />
+                <div class="field__error" data-error-for="cardCvv"></div>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="cardCountry">País de la tarjeta *</label>
+              <select id="cardCountry" required>
+                <option value="España">España</option>
+                <option value="Portugal">Portugal</option>
+                <option value="Francia">Francia</option>
+                <option value="Italia">Italia</option>
+                <option value="Alemania">Alemania</option>
+                <option value="Otro">Otro</option>
+              </select>
+              <div class="field__error" data-error-for="cardCountry"></div>
+            </div>
+
+            <label class="remember-check">
+              <input type="checkbox" id="rememberCard" />
+              <span>Recordarme según la Política de Privacidad</span>
+            </label>
+          </div>
+
+          <div class="checkout-actions">
+            <button class="btn btn--ghost checkout-back" type="button" id="backToCartBtn">Volver al carrito</button>
+            <button class="btn btn--primary checkout-submit" type="submit" id="confirmCheckoutBtn">Pagar y finalizar</button>
+          </div>
+        </form>
+
+        <aside class="checkout-card checkout-summary">
+          <div class="form-block__header">
+            <h3>Resumen del pedido</h3>
+            <span class="form-block__tag">Productos añadidos</span>
+          </div>
+          <div id="checkoutSummaryList" class="summary-list"></div>
+          <div class="summary-empty" id="checkoutEmpty" hidden>Tu carrito está vacío.</div>
+          <div class="checkout-total">
+            <span>Total</span>
+            <strong id="checkoutTotal">-</strong>
+          </div>
+          <p class="summary-note">El pago se simula: no se realiza ningún cobro real.</p>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer class="sd-footer">
+    <small>&copy; SportData - Checkout</small>
+  </footer>
+
+  <script src="../js/app.js?v=2" defer></script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SportData | Mi carrito</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/stilo.css" />
+</head>
+<body class="theme-dark">
+  <header class="sd-header">
+    <div class="sd-header__inner">
+      <a class="sd-logo" href="index.html">
+        <img class="sd-logo__img" src="../images/Logo.png" alt="SportData" />
+      </a>
+
+      <div class="sd-search">
+        <input type="search" placeholder="Buscar productos..." aria-label="Buscar" id="searchInputCart" />
+      </div>
+
+      <nav class="sd-icons">
+        <button class="icon-btn icon-btn--icon" type="button" aria-label="Favoritos" title="Favoritos" id="favoritesButton">
+          <img class="sd-icon" src="../images/icon-heart.svg" alt="" />
+        </button>
+        <button class="icon-btn icon-btn--icon" type="button" aria-label="Carrito" title="Carrito" id="cartButton">
+          <img class="sd-icon" src="../images/icon-cart.svg" alt="" />
+        </button>
+        <button class="icon-btn icon-btn--icon" type="button" aria-label="Perfil" title="Iniciar sesión" id="profileButton">
+          <img class="sd-icon" src="../images/icon-user.svg" alt="" />
+        </button>
+      </nav>
+    </div>
+
+    <div class="sd-tabs">
+      <a href="category.html?sport=running" class="tab">RUNNING</a>
+      <a href="category.html?sport=montana" class="tab">MONTAÑA</a>
+      <a href="category.html?sport=futbol" class="tab">FÚTBOL</a>
+      <a href="category.html?sport=ciclismo" class="tab">CICLISMO</a>
+      <a href="category.html?sport=baloncesto" class="tab">BALONCESTO</a>
+    </div>
+  </header>
+
+  <main class="category-layout" data-cart-view>
+    <section class="home-section">
+      <header class="home-section__header">
+        <div>
+          <h2>Mi carrito</h2>
+          <p id="cartMessage">Cargando carrito...</p>
+        </div>
+        <div>
+          <button class="btn btn--primary" type="button" id="checkoutBtn">Finalizar compra</button>
+        </div>
+      </header>
+      <div class="product-grid" id="cartGrid" aria-live="polite"></div>
+      <div class="cart-summary" id="cartSummary"></div>
+    </section>
+  </main>
+
+  <footer class="sd-footer">
+    <small>&copy; SportData - Carrito</small>
+  </footer>
+
+  <script src="../js/app.js?v=2" defer></script>
+</body>
+</html>

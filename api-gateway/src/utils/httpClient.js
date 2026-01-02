@@ -11,7 +11,13 @@ const productServiceClient = axios.create({
   timeout: 8000,
 });
 
+const orderServiceClient = axios.create({
+  baseURL: services.order,
+  timeout: 8000,
+});
+
 module.exports = {
   userServiceClient,
   productServiceClient,
+  orderServiceClient,
 };

@@ -32,10 +32,12 @@ services:
       PORT: 5000
       USER_SERVICE_URL: http://user-service:4001/api
       PRODUCT_SERVICE_URL: http://product-service:8002
+      ORDER_SERVICE_URL: http://orders-service:7000
       JWT_SECRET: ${JWT_SECRET:-sportdata-dev-secret}
     depends_on:
       - user-service
       - product-service
+      - orders-service
     ports:
       - "127.0.0.1:5000:5000"
 
@@ -67,6 +69,32 @@ services:
     ports:
       - "127.0.0.1:8002:8002"
 
+  orders-db:
+    image: mongo:6
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: sportdata_orders
+    volumes:
+      - orders_data:/data/db
+    ports:
+      - "127.0.0.1:27019:27017"
+
+  orders-service:
+    build:
+      context: ./microservicioPedidos
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 7000
+      ORDERS_MONGO_URI: mongodb://orders-db:27017/sportdata_orders
+      PRODUCT_SERVICE_URL: http://product-service:8002
+      JWT_SECRET: ${JWT_SECRET:-sportdata-dev-secret}
+    depends_on:
+      - orders-db
+      - product-service
+    ports:
+      - "127.0.0.1:7000:7000"
+
   frontend:
     image: nginx:alpine
     restart: unless-stopped
@@ -81,3 +109,4 @@ services:
 volumes:
   mongo_data:
   products_pgdata:
+  orders_data:
