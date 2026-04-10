@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../css/stilo.css" />
+  <link rel="stylesheet" href="../css/stilo.css?v=4" />
 </head>
 <body class="theme-dark">
   <header class="sd-header">
@@ -35,8 +35,8 @@
 
     <div class="sd-tabs">
       <a href="category.html?sport=running" class="tab">RUNNING</a>
-      <a href="category.html?sport=montana" class="tab">MONTAÑA</a>
-      <a href="category.html?sport=futbol" class="tab">FÚTBOL</a>
+      <a href="category.html?sport=montana" class="tab">MONTANA</a>
+      <a href="category.html?sport=futbol" class="tab">FUTBOL</a>
       <a href="category.html?sport=ciclismo" class="tab">CICLISMO</a>
       <a href="category.html?sport=baloncesto" class="tab">BALONCESTO</a>
     </div>
@@ -48,6 +48,24 @@
       <span> / </span>
       <span>Mi perfil</span>
     </nav>
+
+    <section class="auth-card auth-card--admin-tabs" id="adminTabsSection" hidden>
+      <h2 class="auth-card__title">PANEL ADMIN</h2>
+      <div class="admin-tabs" id="adminTabs" role="tablist" aria-label="Panel administrador">
+        <button class="admin-tabs__tab admin-tabs__tab--active" type="button" role="tab" aria-selected="true" data-admin-tab="my-profile">
+          Mis datos
+        </button>
+        <button class="admin-tabs__tab" type="button" role="tab" aria-selected="false" data-admin-tab="users">
+          Ver usuarios
+        </button>
+        <button class="admin-tabs__tab" type="button" role="tab" aria-selected="false" data-admin-tab="create-product">
+          Anadir producto
+        </button>
+        <button class="admin-tabs__tab" type="button" role="tab" aria-selected="false" data-admin-tab="manage-products">
+          Modificar/Eliminar producto
+        </button>
+      </div>
+    </section>
 
     <section class="auth-card profile-card" id="profileCard">
       <div class="auth-card__brand">
@@ -73,7 +91,7 @@
             <tr>
               <th>Nombre</th>
               <th>Email</th>
-              <th>Dirección</th>
+              <th>Direccion</th>
               <th>Rol</th>
               <th>Registro</th>
             </tr>
@@ -87,12 +105,217 @@
         <button class="btn btn--ghost users-pagination__btn" type="button" id="nextUsersBtn">Siguiente</button>
       </div>
     </section>
+
+    <section class="auth-card auth-card--list" id="createProductSection" hidden>
+      <h2 class="auth-card__title">ANADIR PRODUCTO</h2>
+      <p class="auth-card__subtitle" id="productCreateMessage"></p>
+
+      <form id="productCreateForm" novalidate>
+        <div class="grid-2">
+          <div class="field">
+            <label for="productNombre">Nombre</label>
+            <input id="productNombre" name="nombre" type="text" placeholder="Nombre del producto" required />
+          </div>
+          <div class="field">
+            <label for="productCategoria">Categoria</label>
+            <select id="productCategoria" name="categoria" required>
+              <option value="">Selecciona categoria</option>
+              <option value="zapatillas">Zapatillas</option>
+              <option value="ropa">Ropa</option>
+              <option value="accesorios">Accesorios</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="productDeporte">Deporte</label>
+            <select id="productDeporte" name="deporte" required>
+              <option value="">Selecciona deporte</option>
+              <option value="running">Running</option>
+              <option value="montana">Montana</option>
+              <option value="futbol">Futbol</option>
+              <option value="ciclismo">Ciclismo</option>
+              <option value="baloncesto">Baloncesto</option>
+              <option value="natacion">Natacion</option>
+              <option value="crossfit">Crossfit</option>
+              <option value="tenis">Tenis</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="productColor">Color</label>
+            <input id="productColor" name="color" type="text" placeholder="Color" required />
+          </div>
+          <div class="field">
+            <label for="productMarca">Marca</label>
+            <input id="productMarca" name="marca" type="text" placeholder="Marca" required />
+          </div>
+          <div class="field">
+            <label for="productPrecio">Precio (EUR)</label>
+            <input id="productPrecio" name="precio" type="number" min="0" step="0.01" placeholder="0.00" required />
+          </div>
+          <div class="field">
+            <label for="productStock">Stock</label>
+            <input id="productStock" name="stock" type="number" min="0" step="1" placeholder="0" required />
+          </div>
+          <div class="field field--check">
+            <label class="field-check" for="productDisponible">
+              <input id="productDisponible" name="disponible" type="checkbox" checked />
+              <span>Disponible para la venta</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="productDescripcion">Descripcion</label>
+          <textarea id="productDescripcion" name="descripcion" rows="4" placeholder="Descripcion del producto" required></textarea>
+        </div>
+
+        <div class="field">
+          <label for="productImageFile">Imagen del producto</label>
+          <input id="productImageFile" name="imagen" type="file" accept="image/*" hidden />
+          <button class="btn btn--ghost admin-upload-trigger" type="button" id="productImagePickBtn">Seleccionar imagen</button>
+          <p class="field__hint" id="productImageFileName">Ningun archivo seleccionado</p>
+          <p class="field__error" id="productImageError"></p>
+          <div class="admin-upload-preview" id="productImagePreview" hidden>
+            <img id="productImagePreviewImg" src="" alt="Vista previa del producto" />
+          </div>
+        </div>
+
+        <button class="btn btn--primary" type="submit">Guardar producto</button>
+      </form>
+    </section>
+
+    <section class="auth-card auth-card--list" id="manageProductsSection" hidden>
+      <h2 class="auth-card__title">MODIFICAR / ELIMINAR PRODUCTOS</h2>
+      <p class="auth-card__subtitle" id="manageProductsMessage"></p>
+
+      <div class="admin-product-filters">
+        <div class="field admin-product-filters__field admin-product-filters__field--search">
+          <label for="manageProductSearch">Buscador</label>
+          <input id="manageProductSearch" type="search" placeholder="Buscar por nombre, marca, color o ID" />
+        </div>
+        <div class="field admin-product-filters__field">
+          <label for="manageFilterCategoria">Categoria</label>
+          <select id="manageFilterCategoria">
+            <option value="all">Todas las categorias</option>
+          </select>
+        </div>
+        <div class="field admin-product-filters__field">
+          <label for="manageFilterDeporte">Deporte</label>
+          <select id="manageFilterDeporte">
+            <option value="all">Todos los deportes</option>
+          </select>
+        </div>
+        <div class="field admin-product-filters__field">
+          <label for="manageFilterDisponibilidad">Disponibilidad</label>
+          <select id="manageFilterDisponibilidad">
+            <option value="all">Todos</option>
+            <option value="available">Disponibles</option>
+            <option value="unavailable">No disponibles</option>
+          </select>
+        </div>
+        <button class="btn btn--ghost admin-product-filters__clear" type="button" id="manageClearFiltersBtn">
+          Limpiar filtros
+        </button>
+      </div>
+
+      <div class="table-wrap">
+        <table class="sd-table sd-table--admin-products">
+          <thead>
+            <tr>
+              <th>Foto</th>
+              <th>Nombre</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="manageProductsTableBody"></tbody>
+        </table>
+      </div>
+
+      <section class="admin-editor" id="manageProductEditor" hidden>
+        <h3 class="auth-card__title admin-editor__title">MODIFICAR PRODUCTO</h3>
+        <form id="manageProductForm" novalidate>
+          <input type="hidden" id="manageProductId" />
+
+          <div class="grid-2">
+            <div class="field">
+              <label for="manageNombre">Nombre</label>
+              <input id="manageNombre" type="text" required />
+            </div>
+            <div class="field">
+              <label for="manageCategoria">Categoria</label>
+              <select id="manageCategoria" required>
+                <option value="">Selecciona categoria</option>
+                <option value="zapatillas">Zapatillas</option>
+                <option value="ropa">Ropa</option>
+                <option value="accesorios">Accesorios</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="manageDeporte">Deporte</label>
+              <select id="manageDeporte" required>
+                <option value="">Selecciona deporte</option>
+                <option value="running">Running</option>
+                <option value="montana">Montana</option>
+                <option value="futbol">Futbol</option>
+                <option value="ciclismo">Ciclismo</option>
+                <option value="baloncesto">Baloncesto</option>
+                <option value="natacion">Natacion</option>
+                <option value="crossfit">Crossfit</option>
+                <option value="tenis">Tenis</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="manageColor">Color</label>
+              <input id="manageColor" type="text" />
+            </div>
+            <div class="field">
+              <label for="manageMarca">Marca</label>
+              <input id="manageMarca" type="text" required />
+            </div>
+            <div class="field">
+              <label for="managePrecio">Precio (EUR)</label>
+              <input id="managePrecio" type="number" min="0" step="0.01" required />
+            </div>
+            <div class="field">
+              <label for="manageStock">Stock</label>
+              <input id="manageStock" type="number" min="0" step="1" required />
+            </div>
+            <div class="field field--check">
+              <label class="field-check" for="manageDisponible">
+                <input id="manageDisponible" type="checkbox" />
+                <span>Disponible</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="manageDescripcion">Descripcion</label>
+            <textarea id="manageDescripcion" rows="4"></textarea>
+          </div>
+
+          <div class="field">
+            <label for="manageImageFile">Imagen del producto</label>
+            <input id="manageImageFile" type="file" accept="image/*" hidden />
+            <button class="btn btn--ghost admin-upload-trigger" type="button" id="manageImagePickBtn">Seleccionar imagen</button>
+            <p class="field__hint" id="manageImageFileName">Se mantendra la imagen actual</p>
+            <p class="field__error" id="manageImageError"></p>
+            <div class="admin-upload-preview" id="manageImagePreview" hidden>
+              <img id="manageImagePreviewImg" src="" alt="Vista previa de imagen producto" />
+            </div>
+          </div>
+
+          <div class="admin-editor__actions">
+            <button class="btn btn--primary" type="submit" id="manageSaveBtn">Guardar cambios</button>
+            <button class="btn btn--ghost" type="button" id="manageCancelBtn">Cancelar</button>
+          </div>
+        </form>
+      </section>
+    </section>
   </main>
 
   <footer class="sd-footer">
     <small>&copy; SportData - Demo UI</small>
   </footer>
 
-  <script src="../js/app.js?v=2" defer></script>
+  <script src="../js/app.js?v=12" defer></script>
 </body>
 </html>

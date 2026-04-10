@@ -42,7 +42,18 @@ const loginValidator = [
     .withMessage('La contrasena es obligatoria'),
 ];
 
+const forgotPasswordValidator = [
+  body('email')
+    .trim()
+    .notEmpty()
+    .withMessage('El email es obligatorio')
+    .isEmail()
+    .withMessage('El email debe tener un formato valido')
+    .normalizeEmail(),
+];
+
 module.exports = {
   registerValidator,
   loginValidator,
+  forgotPasswordValidator,
 };

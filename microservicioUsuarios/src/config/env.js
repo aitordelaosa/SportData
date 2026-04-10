@@ -15,6 +15,11 @@ const config = {
   mongo: {
     uri: process.env.MONGO_URI || 'mongodb://localhost:27018/sportdata_usuarios',
   },
+  mail: {
+    user: process.env.MAIL_USER || '',
+    appPassword: process.env.MAIL_APP_PASSWORD || '',
+    from: process.env.MAIL_FROM || process.env.MAIL_USER || '',
+  },
 };
 
 module.exports = config;

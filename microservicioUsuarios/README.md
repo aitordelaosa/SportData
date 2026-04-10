@@ -16,6 +16,9 @@ Variables clave:
 - `MONGO_URI` (ej. `mongodb://localhost:27018/sportdata_usuarios`)
 - `JWT_SECRET` (debe coincidir con gateway y pedidos)
 - `JWT_EXPIRES_IN` (p. ej. `2h`)
+- `MAIL_USER` (cuenta Gmail emisora)
+- `MAIL_APP_PASSWORD` (App Password de Gmail)
+- `MAIL_FROM` (opcional, remitente visible)
 
 ## Ejecucion
 ```bash
@@ -37,6 +40,7 @@ Metodo | Ruta | Notas
 --- | --- | ---
 POST | `/auth/register` | Crea usuario
 POST | `/auth/login` | Devuelve JWT
+POST | `/auth/forgot-password` | Envia contrasena temporal por correo
 GET | `/users/me` | Perfil (JWT)
 PUT | `/users/me` | Actualiza nombre/email/direccion (JWT)
 GET | `/users` | Listado para rol `admin` (JWT)

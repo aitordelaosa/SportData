@@ -18,6 +18,9 @@ services:
       PORT: 4001
       MONGO_URI: mongodb://mongo:27017/sportdata_usuarios
       JWT_SECRET: ${JWT_SECRET:-sportdata-dev-secret}
+      MAIL_USER: ${MAIL_USER:-}
+      MAIL_APP_PASSWORD: ${MAIL_APP_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:-}
     depends_on:
       - mongo
     ports:
@@ -65,7 +68,7 @@ services:
     depends_on:
       - products-db
     volumes:
-      - ./static:/app/static:ro
+      - ./static:/app/static
     ports:
       - "127.0.0.1:8002:8002"
 

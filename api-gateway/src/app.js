@@ -6,9 +6,12 @@ const { notFoundHandler, errorHandler } = require('./middleware/errorHandler');
 
 function createApp() {
   const app = express();
+  const jsonBodyLimit = process.env.API_JSON_LIMIT || '2gb';
+  const formBodyLimit = process.env.API_FORM_LIMIT || '2gb';
 
   app.use(cors());
-  app.use(express.json());
+  app.use(express.json({ limit: jsonBodyLimit }));
+  app.use(express.urlencoded({ extended: true, limit: formBodyLimit }));
   app.use(morgan('dev'));
 
   app.get('/health', (req, res) => {

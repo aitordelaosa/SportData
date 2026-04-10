@@ -21,4 +21,13 @@ router.post('/login', async (req, res, next) => {
   }
 });
 
+router.post('/forgot-password', async (req, res, next) => {
+  try {
+    const payload = await userService.forgotPassword(req.body);
+    res.json(payload);
+  } catch (error) {
+    next(error);
+  }
+});
+
 module.exports = router;

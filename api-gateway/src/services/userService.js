@@ -10,6 +10,11 @@ async function loginUser(payload) {
   return response.data;
 }
 
+async function forgotPassword(payload) {
+  const response = await userServiceClient.post('/auth/forgot-password', payload);
+  return response.data;
+}
+
 async function getProfile(token) {
   const response = await userServiceClient.get('/users/me', {
     headers: {
@@ -40,6 +45,7 @@ async function listUsers(token) {
 module.exports = {
   registerUser,
   loginUser,
+  forgotPassword,
   getProfile,
   updateProfile,
   listUsers,

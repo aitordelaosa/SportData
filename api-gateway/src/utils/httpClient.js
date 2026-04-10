@@ -8,7 +8,9 @@ const userServiceClient = axios.create({
 
 const productServiceClient = axios.create({
   baseURL: services.product,
-  timeout: 8000,
+  timeout: 120000,
+  maxBodyLength: Infinity,
+  maxContentLength: Infinity,
 });
 
 const orderServiceClient = axios.create({

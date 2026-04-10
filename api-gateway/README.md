@@ -30,7 +30,7 @@ Endpoint de salud: `GET /health`. La API publica queda en `http://localhost:5000
 Se construye automaticamente con `docker compose up --build -d` desde la raiz. El `docker-compose.yml` ya inyecta todas las variables y conecta con los servicios internos.
 
 ### Rutas destacadas
-- `POST /api/auth/register`, `POST /api/auth/login`
+- `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/forgot-password`
 - `GET /api/users/me`, `PUT /api/users/me`
 - `GET /api/products`, `GET /api/products/:id`
 - `GET /api/cart`, `POST /api/cart/items`, `PATCH /api/cart/items/:productId`, `DELETE /api/cart/items/:productId`

@@ -18,6 +18,9 @@ web | Frontend estatico (HTML, CSS, JS) servido por Nginx a traves del gateway.
    - Opcional: crea un `.env` en la raiz para compartir el secreto JWT:
      ```env
      JWT_SECRET=super-clave-segura
+     MAIL_USER=tu_cuenta@gmail.com
+     MAIL_APP_PASSWORD=tu_app_password_de_gmail
+     MAIL_FROM=SportData <tu_cuenta@gmail.com>
      ```
      Si no lo defines se usa `sportdata-dev-secret`.
 2. Construye y levanta todos los servicios:
@@ -45,7 +48,7 @@ web | Frontend estatico (HTML, CSS, JS) servido por Nginx a traves del gateway.
    - PostgreSQL productos: `docker run -p 5432:5432 -e POSTGRES_USER=sport4data -e POSTGRES_PASSWORD=sport4data -e POSTGRES_DB=sport4data postgres:15`
 2. Prepara las variables de entorno copiando cada `.env.example` a `.env`. Valores minimos:
    - Raiz: `JWT_SECRET` (compartido).
-   - microservicioUsuarios: `MONGO_URI`, `PORT`, `JWT_SECRET`.
+   - microservicioUsuarios: `MONGO_URI`, `PORT`, `JWT_SECRET`, `MAIL_USER`, `MAIL_APP_PASSWORD`, `MAIL_FROM`.
    - microservicioProductos: `PRODUCTS_DATABASE_URL`, `PRODUCTS_STATIC_DIR`, `PRODUCTS_STATIC_BASE_URL`.
    - microservicioPedidos: `ORDERS_MONGO_URI`, `PRODUCT_SERVICE_URL`, `JWT_SECRET`.
    - api-gateway: `USER_SERVICE_URL`, `PRODUCT_SERVICE_URL`, `ORDER_SERVICE_URL`, `PORT`, `JWT_SECRET`.

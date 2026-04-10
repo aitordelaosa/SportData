@@ -31,6 +31,20 @@ class ProductCreate(ProductBase):
     pass
 
 
+class ProductCreateRequest(ProductBase):
+    """Entrada de alta de producto con soporte opcional de imagen local."""
+
+    imagen_base64: Optional[str] = Field(
+        None, description="Imagen en formato data URL o base64 plano"
+    )
+    imagen_nombre: Optional[str] = Field(
+        None, description="Nombre original del archivo subido"
+    )
+    imagen_mime: Optional[str] = Field(
+        None, description="Tipo MIME declarado por el navegador"
+    )
+
+
 class ProductUpdate(BaseModel):
     """Todos los campos opcionales para actualizacion parcial."""
 
@@ -44,6 +58,20 @@ class ProductUpdate(BaseModel):
     descripcion: Optional[str] = None
     imagen_url: Optional[str] = None
     disponible: Optional[bool] = None
+
+
+class ProductUpdateRequest(ProductUpdate):
+    """Entrada de actualizacion con soporte opcional de nueva imagen."""
+
+    imagen_base64: Optional[str] = Field(
+        None, description="Imagen en formato data URL o base64 plano"
+    )
+    imagen_nombre: Optional[str] = Field(
+        None, description="Nombre original del archivo subido"
+    )
+    imagen_mime: Optional[str] = Field(
+        None, description="Tipo MIME declarado por el navegador"
+    )
 
 
 class Product(ProductBase):

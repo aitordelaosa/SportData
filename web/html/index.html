@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../css/stilo.css" />
+  <link rel="stylesheet" href="../css/stilo.css?v=3" />
 </head>
 <body class="theme-dark">
   <header class="sd-header">
@@ -204,6 +204,18 @@
           </div>
         </section>
 
+        <section class="auth-card auth-card--admin-tabs" id="adminTabsSection" hidden>
+          <h2 class="auth-card__title">PANEL ADMIN</h2>
+          <div class="admin-tabs" id="adminTabs" role="tablist" aria-label="Panel administrador">
+            <button class="admin-tabs__tab admin-tabs__tab--active" type="button" role="tab" aria-selected="true" data-admin-tab="users">
+              Ver usuarios
+            </button>
+            <button class="admin-tabs__tab" type="button" role="tab" aria-selected="false" data-admin-tab="create-product">
+              Anadir producto
+            </button>
+          </div>
+        </section>
+
         <section class="auth-card auth-card--list" id="usersSection" hidden>
           <h2 class="auth-card__title">USUARIOS REGISTRADOS</h2>
           <p class="auth-card__subtitle" id="usersSectionMessage"></p>
@@ -227,6 +239,83 @@
             <span id="usersPageInfo" class="users-pagination__info"></span>
             <button class="btn btn--ghost users-pagination__btn" type="button" id="nextUsersBtn">Siguiente</button>
           </div>
+        </section>
+
+        <section class="auth-card auth-card--list" id="createProductSection" hidden>
+          <h2 class="auth-card__title">ANADIR PRODUCTO</h2>
+          <p class="auth-card__subtitle" id="productCreateMessage"></p>
+
+          <form id="productCreateForm" novalidate>
+            <div class="grid-2">
+              <div class="field">
+                <label for="productNombre">Nombre</label>
+                <input id="productNombre" name="nombre" type="text" placeholder="Nombre del producto" required />
+              </div>
+              <div class="field">
+                <label for="productCategoria">Categoria</label>
+                <select id="productCategoria" name="categoria" required>
+                  <option value="">Selecciona categoria</option>
+                  <option value="zapatillas">Zapatillas</option>
+                  <option value="ropa">Ropa</option>
+                  <option value="accesorios">Accesorios</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="productDeporte">Deporte</label>
+                <select id="productDeporte" name="deporte" required>
+                  <option value="">Selecciona deporte</option>
+                  <option value="running">Running</option>
+                  <option value="montana">Montana</option>
+                  <option value="futbol">Futbol</option>
+                  <option value="ciclismo">Ciclismo</option>
+                  <option value="baloncesto">Baloncesto</option>
+                  <option value="natacion">Natacion</option>
+                  <option value="crossfit">Crossfit</option>
+                  <option value="tenis">Tenis</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="productColor">Color</label>
+                <input id="productColor" name="color" type="text" placeholder="Color" required />
+              </div>
+              <div class="field">
+                <label for="productMarca">Marca</label>
+                <input id="productMarca" name="marca" type="text" placeholder="Marca" required />
+              </div>
+              <div class="field">
+                <label for="productPrecio">Precio (EUR)</label>
+                <input id="productPrecio" name="precio" type="number" min="0" step="0.01" placeholder="0.00" required />
+              </div>
+              <div class="field">
+                <label for="productStock">Stock</label>
+                <input id="productStock" name="stock" type="number" min="0" step="1" placeholder="0" required />
+              </div>
+              <div class="field field--check">
+                <label class="field-check" for="productDisponible">
+                  <input id="productDisponible" name="disponible" type="checkbox" checked />
+                  <span>Disponible para la venta</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="productDescripcion">Descripcion</label>
+              <textarea id="productDescripcion" name="descripcion" rows="4" placeholder="Descripcion del producto" required></textarea>
+            </div>
+
+            <div class="field">
+              <label for="productImageFile">Imagen del producto</label>
+              <input id="productImageFile" name="imagen" type="file" accept="image/*" hidden />
+              <button class="btn btn--ghost admin-upload-trigger" type="button" id="productImagePickBtn">Seleccionar imagen</button>
+              <p class="field__hint" id="productImageFileName">Ningun archivo seleccionado</p>
+              <p class="field__error" id="productImageError"></p>
+              <div class="admin-upload-preview" id="productImagePreview" hidden>
+                <img id="productImagePreviewImg" src="" alt="Vista previa del producto" />
+              </div>
+            </div>
+
+            <button class="btn btn--primary" type="submit">Guardar producto</button>
+          </form>
         </section>
       </div>
     </div>
@@ -272,6 +361,6 @@
     </div>
   </div>
 
-  <script src="../js/app.js?v=2" defer></script>
+  <script src="../js/app.js?v=8" defer></script>
 </body>
 </html>

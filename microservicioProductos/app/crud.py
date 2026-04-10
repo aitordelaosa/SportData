@@ -91,6 +91,13 @@ def soft_delete_product(db: Session, product: models.Product) -> models.Product:
     return product
 
 
+def delete_product(db: Session, product: models.Product) -> None:
+    """Elimina fisicamente un producto."""
+
+    db.delete(product)
+    db.commit()
+
+
 def update_stock(
     db: Session, product: models.Product, stock: int
 ) -> models.Product:
@@ -101,4 +108,3 @@ def update_stock(
     db.commit()
     db.refresh(product)
     return product
-

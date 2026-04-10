@@ -80,6 +80,20 @@ async function createUser({ nombre, email, passwordHash, direccion, rol }) {
   return mapUser(user.toObject());
 }
 
+async function updateUserPasswordHash(userId, passwordHash) {
+  const validId = normalizeId(userId);
+  if (!validId) {
+    throw new AppError('Usuario no encontrado', 404);
+  }
+
+  const user = await User.findByIdAndUpdate(validId, { passwordHash }, { new: true, lean: true });
+  if (!user) {
+    throw new AppError('Usuario no encontrado', 404);
+  }
+
+  return mapUser(user);
+}
+
 async function updateUserProfile(userId, updates) {
   const validId = normalizeId(userId);
   if (!validId) {
@@ -161,6 +175,7 @@ module.exports = {
   getUserByEmail,
   getUserWithPasswordByEmail,
   createUser,
+  updateUserPasswordHash,
   updateUserProfile,
   updateUserRole,
   listUsers,

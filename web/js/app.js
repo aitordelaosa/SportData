@@ -18,6 +18,7 @@
 })();
 
 const $ = (sel, ctx = document) => ctx.querySelector(sel);
+const ADMIN_TAB_SESSION_KEY = 'sd_admin_tab';
 
 function toast(message, ok = true) {
   let el = $('.toast');
@@ -92,6 +93,20 @@ function debounce(fn, delay = 300) {
       fn(...args);
     }, delay);
   };
+}
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    if (!file) {
+      reject(new Error('No se ha seleccionado ninguna imagen'));
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('No se pudo leer el archivo seleccionado'));
+    reader.readAsDataURL(file);
+  });
 }
 
 function setupSearchSuggestions(input) {
@@ -414,6 +429,79 @@ function updateBodyModalState() {
   }
 }
 
+function showLogoutConfirmInApp() {
+  return new Promise((resolve) => {
+    let modal = document.getElementById('logoutConfirmModal');
+
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'logoutConfirmModal';
+      modal.className = 'modal';
+      modal.hidden = true;
+      modal.innerHTML = `
+        <div class="modal__overlay" data-close-logout-modal></div>
+        <div class="modal__panel modal__panel--confirm">
+          <button class="modal__close" type="button" data-close-logout-modal-btn aria-label="Cerrar aviso">&times;</button>
+          <div class="modal__content modal-confirm">
+            <h2 class="auth-card__title modal-confirm__title">Cerrar sesion</h2>
+            <p class="auth-card__subtitle modal-confirm__subtitle">Quieres cerrar sesion?</p>
+            <div class="modal-confirm__actions">
+              <button class="btn btn--primary" type="button" data-logout-confirm>Cerrar sesion</button>
+              <button class="btn btn--ghost" type="button" data-logout-cancel>Cancelar</button>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+
+    const overlay = modal.querySelector('[data-close-logout-modal]');
+    const closeBtn = modal.querySelector('[data-close-logout-modal-btn]');
+    const cancelBtn = modal.querySelector('[data-logout-cancel]');
+    const confirmBtn = modal.querySelector('[data-logout-confirm]');
+
+    if (!overlay || !closeBtn || !cancelBtn || !confirmBtn) {
+      resolve(false);
+      return;
+    }
+
+    const closeModal = (accepted) => {
+      overlay.removeEventListener('click', handleCancel);
+      closeBtn.removeEventListener('click', handleCancel);
+      cancelBtn.removeEventListener('click', handleCancel);
+      confirmBtn.removeEventListener('click', handleConfirm);
+      document.removeEventListener('keydown', handleKeydown);
+      modal.setAttribute('hidden', 'true');
+      updateBodyModalState();
+      resolve(accepted);
+    };
+
+    const handleCancel = () => {
+      closeModal(false);
+    };
+
+    const handleConfirm = () => {
+      closeModal(true);
+    };
+
+    const handleKeydown = (event) => {
+      if (event.key === 'Escape' && !modal.hasAttribute('hidden')) {
+        closeModal(false);
+      }
+    };
+
+    overlay.addEventListener('click', handleCancel);
+    closeBtn.addEventListener('click', handleCancel);
+    cancelBtn.addEventListener('click', handleCancel);
+    confirmBtn.addEventListener('click', handleConfirm);
+    document.addEventListener('keydown', handleKeydown);
+
+    modal.removeAttribute('hidden');
+    updateBodyModalState();
+    confirmBtn.focus();
+  });
+}
+
 function renderUsers(users = []) {
   const tbody = $('#usersTableBody');
   const pagination = $('#usersPagination');
@@ -497,9 +585,38 @@ function renderUsers(users = []) {
 })();
 
 (function initLoginModal() {
-  const modal = $('#loginModal');
   const trigger = $('#profileButton');
-  if (!modal || !trigger) return;
+  if (!trigger) return;
+
+  const modal = $('#loginModal');
+
+  async function handleAuthenticatedProfileClick() {
+    const currentPage = (window.location.pathname.split('/').pop() || '').toLowerCase();
+    const isProfilePage = currentPage === 'profile.html';
+
+    if (isProfilePage) {
+      const shouldLogout = await showLogoutConfirmInApp();
+      if (!shouldLogout) return;
+
+      clearSession();
+      sessionStorage.removeItem('sd_users_page');
+      sessionStorage.removeItem(ADMIN_TAB_SESSION_KEY);
+      updateHeaderUserLabel();
+      window.location.href = 'index.html';
+      return;
+    }
+
+    window.location.href = 'profile.html';
+  }
+
+  if (!modal) {
+    trigger.addEventListener('click', () => {
+      const session = getSession();
+      if (!session) return;
+      handleAuthenticatedProfileClick();
+    });
+    return;
+  }
 
   const openModal = () => {
     modal.removeAttribute('hidden');
@@ -514,7 +631,7 @@ function renderUsers(users = []) {
   trigger.addEventListener('click', () => {
     const session = getSession();
     if (session) {
-      window.location.href = 'profile.html';
+      handleAuthenticatedProfileClick();
       return;
     }
     openModal();
@@ -807,6 +924,10 @@ function renderUsers(users = []) {
     });
   }
 
+  document.addEventListener('sd:product-created', () => {
+    loadProducts({ search: currentSearch });
+  });
+
   loadProducts();
 })();
 
@@ -994,6 +1115,10 @@ function renderUsers(users = []) {
       }
     });
   }
+
+  document.addEventListener('sd:product-created', () => {
+    loadCategoryProducts({ search: currentSearch });
+  });
 
   loadCategoryProducts();
 })();
@@ -1706,6 +1831,11 @@ function renderUsers(users = []) {
       const { user, token } = payload.data;
       saveSession(user, token);
       sessionStorage.setItem('sd_users_page', '1');
+      if (user?.rol === 'admin') {
+        sessionStorage.setItem(ADMIN_TAB_SESSION_KEY, 'users');
+      } else {
+        sessionStorage.removeItem(ADMIN_TAB_SESSION_KEY);
+      }
       toast(`Bienvenido, ${user.nombre}!`, true);
       updateHeaderUserLabel();
 
@@ -1719,9 +1849,32 @@ function renderUsers(users = []) {
 
   const forgot = $('#forgotLink');
   if (forgot) {
-    forgot.addEventListener('click', (event) => {
+    forgot.addEventListener('click', async (event) => {
       event.preventDefault();
-      toast('FunciÃ³n de recuperaciÃ³n no implementada en la demo', false);
+
+      const loginInput = $('#loginId');
+      let email = normalizeEmail(loginInput?.value || '');
+
+      if (!isValidEmail(email)) {
+        const typed = window.prompt('Introduce el email de tu cuenta');
+        email = normalizeEmail(typed || '');
+      }
+
+      if (!isValidEmail(email)) {
+        toast('Introduce un email valido', false);
+        return;
+      }
+
+      try {
+        const payload = await apiRequest('/auth/forgot-password', {
+          method: 'POST',
+          body: { email },
+        });
+
+        toast(payload?.message || 'Revisa tu correo para recuperar la contrasena', true);
+      } catch (error) {
+        toast(error.message || 'No se pudo enviar el correo de recuperacion', false);
+      }
     });
   }
 })();
@@ -1832,6 +1985,7 @@ function renderUsers(users = []) {
   const shortcutMessage = $('#profileShortcutMessage');
   const goProfileBtn = $('#goProfileBtn');
   const logoutBtn = $('#logoutBtn');
+  const adminTabsSection = $('#adminTabsSection');
 
   if (session) {
     if (welcomeEl) {
@@ -1852,6 +2006,9 @@ function renderUsers(users = []) {
     if (logoutBtn) {
       logoutBtn.hidden = false;
     }
+    if (adminTabsSection) {
+      adminTabsSection.hidden = session.rol !== 'admin';
+    }
     updateHeaderUserLabel();
   } else {
     if (welcomeEl) {
@@ -1869,6 +2026,9 @@ function renderUsers(users = []) {
     if (logoutBtn) {
       logoutBtn.hidden = true;
     }
+    if (adminTabsSection) {
+      adminTabsSection.hidden = true;
+    }
     updateHeaderUserLabel();
   }
 })();
@@ -1881,6 +2041,7 @@ function renderUsers(users = []) {
     logoutBtn.addEventListener('click', () => {
       clearSession();
       sessionStorage.removeItem('sd_users_page');
+      sessionStorage.removeItem(ADMIN_TAB_SESSION_KEY);
       updateHeaderUserLabel();
       window.location.href = 'index.html';
     });
@@ -1966,6 +2127,890 @@ function renderUsers(users = []) {
   }
 
   loadUsers();
+})();
+
+(function initAdminTabs() {
+  const tabsSection = $('#adminTabsSection');
+  const tabsContainer = $('#adminTabs');
+  const profileSection = $('#profileCard');
+  const usersSection = $('#usersSection');
+  const createProductSection = $('#createProductSection');
+  const manageProductsSection = $('#manageProductsSection');
+  const session = getSession();
+
+  if (!tabsSection || !tabsContainer) return;
+
+  function setActiveTab(tabName) {
+    const tabButtons = tabsContainer.querySelectorAll('[data-admin-tab]');
+    const availableTabs = Array.from(tabButtons).map((button) => button.dataset.adminTab);
+    const allowedTabs = ['my-profile', 'users', 'create-product', 'manage-products'];
+    const defaultTab = availableTabs.includes('my-profile') ? 'my-profile' : 'users';
+    let safeTab = allowedTabs.includes(tabName) ? tabName : defaultTab;
+    if (!availableTabs.includes(safeTab)) {
+      safeTab = availableTabs.includes(defaultTab) ? defaultTab : (availableTabs[0] || defaultTab);
+    }
+
+    tabButtons.forEach((button) => {
+      const isActive = button.dataset.adminTab === safeTab;
+      button.classList.toggle('admin-tabs__tab--active', isActive);
+      button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+
+    if (profileSection) {
+      profileSection.hidden = safeTab !== 'my-profile';
+    }
+    if (usersSection) {
+      usersSection.hidden = safeTab !== 'users';
+    }
+    if (createProductSection) {
+      createProductSection.hidden = safeTab !== 'create-product';
+    }
+    if (manageProductsSection) {
+      manageProductsSection.hidden = safeTab !== 'manage-products';
+    }
+    sessionStorage.setItem(ADMIN_TAB_SESSION_KEY, safeTab);
+  }
+
+  if (!session || session.rol !== 'admin') {
+    tabsSection.hidden = true;
+    if (profileSection) {
+      profileSection.hidden = false;
+    }
+    if (usersSection) {
+      usersSection.hidden = true;
+    }
+    if (createProductSection) {
+      createProductSection.hidden = true;
+    }
+    if (manageProductsSection) {
+      manageProductsSection.hidden = true;
+    }
+    return;
+  }
+
+  tabsSection.hidden = false;
+  const savedTab = sessionStorage.getItem(ADMIN_TAB_SESSION_KEY);
+  setActiveTab(savedTab);
+
+  tabsContainer.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-admin-tab]');
+    if (!button) return;
+    setActiveTab(button.dataset.adminTab);
+  });
+})();
+
+(function initProductCreateForm() {
+  const section = $('#createProductSection');
+  const form = $('#productCreateForm');
+  if (!section || !form) return;
+
+  const session = getSession();
+  if (!session || session.rol !== 'admin') {
+    section.hidden = true;
+    return;
+  }
+
+  const messageEl = $('#productCreateMessage');
+  const nombreInput = $('#productNombre');
+  const categoriaInput = $('#productCategoria');
+  const deporteInput = $('#productDeporte');
+  const colorInput = $('#productColor');
+  const marcaInput = $('#productMarca');
+  const precioInput = $('#productPrecio');
+  const stockInput = $('#productStock');
+  const disponibleInput = $('#productDisponible');
+  const descripcionInput = $('#productDescripcion');
+  const imageInput = $('#productImageFile');
+  const imagePickBtn = $('#productImagePickBtn');
+  const imageNameEl = $('#productImageFileName');
+  const imageErrorEl = $('#productImageError');
+  const imagePreview = $('#productImagePreview');
+  const imagePreviewImg = $('#productImagePreviewImg');
+
+  if (
+    !nombreInput
+    || !categoriaInput
+    || !deporteInput
+    || !colorInput
+    || !marcaInput
+    || !precioInput
+    || !stockInput
+    || !disponibleInput
+    || !descripcionInput
+    || !imageInput
+    || !imagePickBtn
+    || !imageNameEl
+    || !imageErrorEl
+    || !imagePreview
+    || !imagePreviewImg
+  ) {
+    return;
+  }
+
+  let selectedImage = null;
+  let previewUrl = '';
+
+  function setMessage(text) {
+    if (messageEl) {
+      messageEl.textContent = text || '';
+    }
+  }
+
+  function setImageError(text) {
+    imageErrorEl.textContent = text || '';
+  }
+
+  function clearPreviewUrl() {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      previewUrl = '';
+    }
+  }
+
+  function clearImage() {
+    clearPreviewUrl();
+    selectedImage = null;
+    imageInput.value = '';
+    imageNameEl.textContent = 'Ningun archivo seleccionado';
+    imagePreview.hidden = true;
+    imagePreviewImg.src = '';
+    setImageError('');
+  }
+
+  function applySelectedImage(file) {
+    clearPreviewUrl();
+    selectedImage = null;
+    imagePreview.hidden = true;
+    imagePreviewImg.src = '';
+    setImageError('');
+
+    if (!file) {
+      imageNameEl.textContent = 'Ningun archivo seleccionado';
+      return;
+    }
+
+    selectedImage = file;
+    imageNameEl.textContent = file.name;
+    previewUrl = URL.createObjectURL(file);
+    imagePreviewImg.src = previewUrl;
+    imagePreview.hidden = false;
+  }
+
+  function buildValidationMessage(payload) {
+    if (!payload.nombre) return 'El nombre es obligatorio';
+    if (!payload.categoria) return 'Selecciona una categoria';
+    if (!payload.deporte) return 'Selecciona un deporte';
+    if (!payload.color) return 'El color es obligatorio';
+    if (!payload.marca) return 'La marca es obligatoria';
+    if (!payload.descripcion) return 'La descripcion es obligatoria';
+    if (!selectedImage) return 'Selecciona una imagen del producto';
+    return '';
+  }
+
+  imagePickBtn.addEventListener('click', () => {
+    imageInput.click();
+  });
+
+  imageInput.addEventListener('change', () => {
+    const file = imageInput.files && imageInput.files[0] ? imageInput.files[0] : null;
+    applySelectedImage(file);
+  });
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const precio = Number.parseFloat(precioInput.value);
+    const stock = Number.parseInt(stockInput.value, 10);
+    const payload = {
+      nombre: nombreInput.value.trim(),
+      categoria: categoriaInput.value.trim().toLowerCase(),
+      deporte: deporteInput.value.trim().toLowerCase(),
+      color: colorInput.value.trim(),
+      marca: marcaInput.value.trim(),
+      descripcion: descripcionInput.value.trim(),
+      disponible: disponibleInput.checked,
+    };
+
+    const validationMessage = buildValidationMessage(payload);
+    if (validationMessage) {
+      setMessage(validationMessage);
+      toast(validationMessage, false);
+      if (!selectedImage) {
+        setImageError('Selecciona una imagen del producto');
+      }
+      return;
+    }
+
+    if (!Number.isFinite(precio) || precio < 0) {
+      const message = 'Introduce un precio valido';
+      setMessage(message);
+      toast(message, false);
+      return;
+    }
+
+    if (!Number.isInteger(stock) || stock < 0) {
+      const message = 'Introduce un stock valido';
+      setMessage(message);
+      toast(message, false);
+      return;
+    }
+
+    try {
+      setMessage('Guardando producto...');
+      const imageDataUrl = await readFileAsDataUrl(selectedImage);
+      const response = await apiRequest('/products', {
+        method: 'POST',
+        token: session.token,
+        body: {
+          ...payload,
+          precio: Number(precio.toFixed(2)),
+          stock,
+          imagen_base64: imageDataUrl,
+          imagen_nombre: selectedImage.name,
+          imagen_mime: selectedImage.type,
+        },
+      });
+
+      const createdProduct = response?.data || response || null;
+      const successName = createdProduct?.nombre || payload.nombre;
+      setMessage(`Producto creado: ${successName}`);
+      toast('Producto guardado correctamente', true);
+      form.reset();
+      clearImage();
+      document.dispatchEvent(new CustomEvent('sd:product-created', {
+        detail: { product: createdProduct },
+      }));
+    } catch (error) {
+      let message = error.message || 'No se pudo crear el producto';
+      if (Array.isArray(error.details) && error.details.length) {
+        message = error.details
+          .map((detail) => detail?.msg || detail?.message || '')
+          .filter(Boolean)
+          .join(' | ') || message;
+      }
+      setMessage(message);
+      toast(message, false);
+    }
+  });
+})();
+
+(function initManageProducts() {
+  const section = $('#manageProductsSection');
+  const tableBody = $('#manageProductsTableBody');
+  const messageEl = $('#manageProductsMessage');
+  const editor = $('#manageProductEditor');
+  const form = $('#manageProductForm');
+  const cancelBtn = $('#manageCancelBtn');
+  const saveBtn = $('#manageSaveBtn');
+  const searchInput = $('#manageProductSearch');
+  const categoryFilter = $('#manageFilterCategoria');
+  const sportFilter = $('#manageFilterDeporte');
+  const availabilityFilter = $('#manageFilterDisponibilidad');
+  const clearFiltersBtn = $('#manageClearFiltersBtn');
+
+  if (!section || !tableBody || !editor || !form || !cancelBtn || !saveBtn) return;
+
+  const session = getSession();
+  if (!session || session.rol !== 'admin') {
+    section.hidden = true;
+    return;
+  }
+
+  const PAGE_SIZE = 100;
+  const placeholderImage = 'https://images.unsplash.com/photo-1508609349937-5ec4ae374ebf?auto=format&fit=crop&w=700&q=80';
+  let products = [];
+  let editingProductId = null;
+  let selectedEditImage = null;
+  let currentEditorImageUrl = '';
+  let editPreviewUrl = '';
+
+  const idInput = $('#manageProductId');
+  const nombreInput = $('#manageNombre');
+  const categoriaInput = $('#manageCategoria');
+  const deporteInput = $('#manageDeporte');
+  const colorInput = $('#manageColor');
+  const marcaInput = $('#manageMarca');
+  const precioInput = $('#managePrecio');
+  const stockInput = $('#manageStock');
+  const disponibleInput = $('#manageDisponible');
+  const descripcionInput = $('#manageDescripcion');
+  const imageInput = $('#manageImageFile');
+  const imagePickBtn = $('#manageImagePickBtn');
+  const imageFileNameEl = $('#manageImageFileName');
+  const imageErrorEl = $('#manageImageError');
+  const imagePreview = $('#manageImagePreview');
+  const imagePreviewImg = $('#manageImagePreviewImg');
+
+  if (
+    !idInput
+    || !nombreInput
+    || !categoriaInput
+    || !deporteInput
+    || !colorInput
+    || !marcaInput
+    || !precioInput
+    || !stockInput
+    || !disponibleInput
+    || !descripcionInput
+    || !imageInput
+    || !imagePickBtn
+    || !imageFileNameEl
+    || !imageErrorEl
+    || !imagePreview
+    || !imagePreviewImg
+  ) {
+    return;
+  }
+
+  function setMessage(text) {
+    if (messageEl) {
+      messageEl.textContent = text || '';
+    }
+  }
+
+  function normalizeFilterValue(value = '') {
+    return String(value || '')
+      .normalize('NFKC')
+      .trim()
+      .toLowerCase();
+  }
+
+  function formatFilterLabel(value = '') {
+    const normalized = String(value || '')
+      .trim()
+      .replace(/[_-]+/g, ' ');
+    if (!normalized) return '';
+
+    return normalized
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ');
+  }
+
+  function syncFilterSelectOptions(selectEl, values = [], allLabel) {
+    if (!selectEl) return;
+    const previousValue = selectEl.value || 'all';
+    const normalizedValues = Array.from(new Set(values.map((value) => normalizeFilterValue(value)).filter(Boolean)))
+      .sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
+
+    selectEl.innerHTML = '';
+
+    const allOption = document.createElement('option');
+    allOption.value = 'all';
+    allOption.textContent = allLabel;
+    selectEl.appendChild(allOption);
+
+    normalizedValues.forEach((value) => {
+      const option = document.createElement('option');
+      option.value = value;
+      option.textContent = formatFilterLabel(value);
+      selectEl.appendChild(option);
+    });
+
+    if (previousValue === 'all') {
+      selectEl.value = 'all';
+      return;
+    }
+
+    selectEl.value = normalizedValues.includes(previousValue) ? previousValue : 'all';
+  }
+
+  function clearRows() {
+    tableBody.innerHTML = '';
+  }
+
+  function renderEmptyRow(message) {
+    clearRows();
+    const row = document.createElement('tr');
+    const cell = document.createElement('td');
+    cell.colSpan = 3;
+    cell.textContent = message;
+    row.appendChild(cell);
+    tableBody.appendChild(row);
+  }
+
+  function setImageError(text) {
+    imageErrorEl.textContent = text || '';
+  }
+
+  function clearEditPreviewUrl() {
+    if (editPreviewUrl) {
+      URL.revokeObjectURL(editPreviewUrl);
+      editPreviewUrl = '';
+    }
+  }
+
+  function setEditorImagePreview(src) {
+    const finalSrc = src || placeholderImage;
+    imagePreviewImg.src = finalSrc;
+    imagePreview.hidden = false;
+  }
+
+  function clearSelectedEditorImage() {
+    selectedEditImage = null;
+    imageInput.value = '';
+    imageFileNameEl.textContent = 'Se mantendra la imagen actual';
+    setImageError('');
+    clearEditPreviewUrl();
+    setEditorImagePreview(currentEditorImageUrl);
+  }
+
+  function ensureSelectOption(selectEl, value) {
+    const normalized = (value || '').trim();
+    if (!normalized) {
+      selectEl.value = '';
+      return;
+    }
+
+    const exists = Array.from(selectEl.options).some((option) => option.value === normalized);
+    if (!exists) {
+      const option = document.createElement('option');
+      option.value = normalized;
+      option.textContent = normalized.charAt(0).toUpperCase() + normalized.slice(1);
+      selectEl.appendChild(option);
+    }
+    selectEl.value = normalized;
+  }
+
+  function setEditorState(visible) {
+    editor.hidden = !visible;
+    if (!visible) {
+      editingProductId = null;
+      form.reset();
+      idInput.value = '';
+      currentEditorImageUrl = '';
+      clearEditPreviewUrl();
+      imagePreviewImg.src = '';
+      imagePreview.hidden = true;
+      imageFileNameEl.textContent = 'Se mantendra la imagen actual';
+      setImageError('');
+      selectedEditImage = null;
+    }
+  }
+
+  function fillEditor(product) {
+    if (!product) return;
+    editingProductId = Number(product.id);
+    idInput.value = String(product.id);
+    nombreInput.value = product.nombre || '';
+    ensureSelectOption(categoriaInput, (product.categoria || '').toLowerCase());
+    ensureSelectOption(deporteInput, (product.deporte || '').toLowerCase());
+    colorInput.value = product.color || '';
+    marcaInput.value = product.marca || '';
+    const priceValue = Number(product.precio);
+    precioInput.value = Number.isFinite(priceValue) ? priceValue.toFixed(2) : '0.00';
+    const stockValue = Number.parseInt(product.stock, 10);
+    stockInput.value = Number.isInteger(stockValue) && stockValue >= 0 ? String(stockValue) : '0';
+    descripcionInput.value = product.descripcion || '';
+    disponibleInput.checked = Boolean(product.disponible);
+    currentEditorImageUrl = product.imagen_url || '';
+    clearSelectedEditorImage();
+    setEditorState(true);
+    editor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  async function buildUpdatePayload() {
+    const payload = {
+      nombre: nombreInput.value.trim(),
+      categoria: categoriaInput.value.trim().toLowerCase(),
+      deporte: deporteInput.value.trim().toLowerCase(),
+      color: colorInput.value.trim(),
+      marca: marcaInput.value.trim(),
+      descripcion: descripcionInput.value.trim(),
+      disponible: disponibleInput.checked,
+    };
+
+    const priceValue = Number.parseFloat(precioInput.value);
+    const stockValue = Number.parseInt(stockInput.value, 10);
+
+    if (!payload.nombre) throw new Error('El nombre del producto es obligatorio');
+    if (!payload.categoria) throw new Error('La categoria es obligatoria');
+    if (!payload.deporte) throw new Error('El deporte es obligatorio');
+    if (!payload.marca) throw new Error('La marca es obligatoria');
+    if (!Number.isFinite(priceValue) || priceValue < 0) throw new Error('El precio no es valido');
+    if (!Number.isInteger(stockValue) || stockValue < 0) throw new Error('El stock no es valido');
+
+    payload.precio = Number(priceValue.toFixed(2));
+    payload.stock = stockValue;
+
+    if (selectedEditImage) {
+      payload.imagen_base64 = await readFileAsDataUrl(selectedEditImage);
+      payload.imagen_nombre = selectedEditImage.name;
+      payload.imagen_mime = selectedEditImage.type;
+    }
+
+    return payload;
+  }
+
+  function setRowBusy(row, isBusy) {
+    const actionButtons = row.querySelectorAll('button[data-action]');
+    actionButtons.forEach((button) => {
+      button.disabled = isBusy;
+    });
+  }
+
+  function renderProductsList(items = [], emptyMessage = 'No hay productos registrados') {
+    clearRows();
+    if (!items.length) {
+      renderEmptyRow(emptyMessage);
+      return;
+    }
+
+    items.forEach((product) => {
+      const row = document.createElement('tr');
+      row.dataset.productId = String(product.id);
+
+      const imageCell = document.createElement('td');
+      imageCell.className = 'admin-product-media';
+      const img = document.createElement('img');
+      img.className = 'admin-product-thumb';
+      img.src = product.imagen_url || placeholderImage;
+      img.alt = product.nombre || 'Producto';
+      imageCell.appendChild(img);
+      row.appendChild(imageCell);
+
+      const nameCell = document.createElement('td');
+      const nameWrap = document.createElement('div');
+      nameWrap.className = 'admin-product-name';
+      const name = document.createElement('strong');
+      name.textContent = product.nombre || 'Producto sin nombre';
+      const meta = document.createElement('small');
+      meta.textContent = `ID ${product.id} · ${product.categoria || '-'} · ${product.deporte || '-'}`;
+      nameWrap.appendChild(name);
+      nameWrap.appendChild(meta);
+      nameCell.appendChild(nameWrap);
+      row.appendChild(nameCell);
+
+      const actionsCell = document.createElement('td');
+      const actions = document.createElement('div');
+      actions.className = 'admin-product-actions';
+
+      const editBtn = document.createElement('button');
+      editBtn.type = 'button';
+      editBtn.className = 'btn btn--ghost';
+      editBtn.textContent = 'Modificar';
+      editBtn.dataset.action = 'edit-product';
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.type = 'button';
+      deleteBtn.className = 'btn btn--ghost';
+      deleteBtn.textContent = 'Eliminar';
+      deleteBtn.dataset.action = 'delete-product';
+
+      actions.appendChild(editBtn);
+      actions.appendChild(deleteBtn);
+      actionsCell.appendChild(actions);
+      row.appendChild(actionsCell);
+
+      tableBody.appendChild(row);
+    });
+  }
+
+  function getFiltersState() {
+    return {
+      term: searchInput ? normalizeFilterValue(searchInput.value) : '',
+      categoria: categoryFilter ? normalizeFilterValue(categoryFilter.value || 'all') : 'all',
+      deporte: sportFilter ? normalizeFilterValue(sportFilter.value || 'all') : 'all',
+      disponibilidad: availabilityFilter ? normalizeFilterValue(availabilityFilter.value || 'all') : 'all',
+    };
+  }
+
+  function hasActiveFilters(filters = getFiltersState()) {
+    return Boolean(
+      filters.term
+      || filters.categoria !== 'all'
+      || filters.deporte !== 'all'
+      || filters.disponibilidad !== 'all',
+    );
+  }
+
+  function updateFiltersFromProducts() {
+    const categories = products
+      .map((product) => product?.categoria)
+      .filter(Boolean);
+    const sports = products
+      .map((product) => product?.deporte)
+      .filter(Boolean);
+
+    syncFilterSelectOptions(categoryFilter, categories, 'Todas las categorias');
+    syncFilterSelectOptions(sportFilter, sports, 'Todos los deportes');
+  }
+
+  function matchesFilters(product, filters) {
+    const categoryValue = normalizeFilterValue(product?.categoria || '');
+    const sportValue = normalizeFilterValue(product?.deporte || '');
+    const availableRaw = product?.disponible;
+    const availableValue = availableRaw === true
+      || availableRaw === 1
+      || normalizeFilterValue(availableRaw) === 'true';
+
+    if (filters.categoria !== 'all' && categoryValue !== filters.categoria) {
+      return false;
+    }
+    if (filters.deporte !== 'all' && sportValue !== filters.deporte) {
+      return false;
+    }
+    if (filters.disponibilidad === 'available' && !availableValue) {
+      return false;
+    }
+    if (filters.disponibilidad === 'unavailable' && availableValue) {
+      return false;
+    }
+
+    if (!filters.term) {
+      return true;
+    }
+
+    const searchChunks = [
+      product?.id,
+      product?.nombre,
+      product?.marca,
+      product?.color,
+      product?.descripcion,
+      product?.categoria,
+      product?.deporte,
+    ];
+
+    const searchTarget = searchChunks
+      .map((piece) => normalizeFilterValue(piece))
+      .join(' ');
+
+    return searchTarget.includes(filters.term);
+  }
+
+  function renderFilteredProducts() {
+    const filters = getFiltersState();
+    const filtered = products.filter((product) => matchesFilters(product, filters));
+    const usingFilters = hasActiveFilters(filters);
+
+    renderProductsList(
+      filtered,
+      usingFilters ? 'No hay productos que coincidan con la busqueda/filtros' : 'No hay productos registrados',
+    );
+
+    if (!products.length) {
+      setMessage('No hay productos registrados');
+      return;
+    }
+
+    if (!usingFilters) {
+      setMessage(`Total productos: ${products.length}`);
+      return;
+    }
+
+    if (!filtered.length) {
+      setMessage('No hay productos que coincidan con la busqueda/filtros');
+      return;
+    }
+
+    setMessage(`Mostrando ${filtered.length} de ${products.length} productos`);
+  }
+
+  function resetFilters() {
+    if (searchInput) {
+      searchInput.value = '';
+    }
+    if (categoryFilter) {
+      categoryFilter.value = 'all';
+    }
+    if (sportFilter) {
+      sportFilter.value = 'all';
+    }
+    if (availabilityFilter) {
+      availabilityFilter.value = 'all';
+    }
+  }
+
+  function findProductById(productId) {
+    return products.find((product) => Number(product.id) === Number(productId)) || null;
+  }
+
+  async function fetchAllProducts() {
+    const collected = [];
+    let skip = 0;
+
+    while (true) {
+      const payload = await apiRequest(`/products${buildQueryString({ limit: PAGE_SIZE, skip })}`);
+      const chunk = payload?.data || payload || [];
+      if (!Array.isArray(chunk) || !chunk.length) {
+        break;
+      }
+      collected.push(...chunk);
+      if (chunk.length < PAGE_SIZE) {
+        break;
+      }
+      skip += PAGE_SIZE;
+    }
+
+    return collected;
+  }
+
+  async function loadProducts() {
+    try {
+      setMessage('Cargando productos...');
+      products = await fetchAllProducts();
+      updateFiltersFromProducts();
+      renderFilteredProducts();
+    } catch (error) {
+      renderEmptyRow('No se pudieron cargar los productos');
+      setMessage(error.message || 'No se pudo cargar la lista de productos');
+    }
+  }
+
+  async function handleDeleteProduct(productId, row) {
+    const confirmed = window.confirm('¿Seguro que quieres eliminar este producto?');
+    if (!confirmed) return;
+
+    setRowBusy(row, true);
+    try {
+      await apiRequest(`/products/${productId}`, {
+        method: 'DELETE',
+        token: session.token,
+      });
+      products = products.filter((product) => Number(product.id) !== Number(productId));
+      if (editingProductId === Number(productId)) {
+        setEditorState(false);
+      }
+      updateFiltersFromProducts();
+      renderFilteredProducts();
+      toast('Producto eliminado correctamente', true);
+    } catch (error) {
+      toast(error.message || 'No se pudo eliminar el producto', false);
+      setRowBusy(row, false);
+    }
+  }
+
+  function applySelectedEditorImage(file) {
+    setImageError('');
+    clearEditPreviewUrl();
+    selectedEditImage = null;
+
+    if (!file) {
+      imageFileNameEl.textContent = 'Se mantendra la imagen actual';
+      setEditorImagePreview(currentEditorImageUrl);
+      return;
+    }
+
+    selectedEditImage = file;
+    imageFileNameEl.textContent = file.name;
+    editPreviewUrl = URL.createObjectURL(file);
+    setEditorImagePreview(editPreviewUrl);
+  }
+
+  imagePickBtn.addEventListener('click', () => {
+    imageInput.click();
+  });
+
+  imageInput.addEventListener('change', () => {
+    const file = imageInput.files && imageInput.files[0] ? imageInput.files[0] : null;
+    applySelectedEditorImage(file);
+  });
+
+  const debouncedFilterRender = debounce(() => {
+    renderFilteredProducts();
+  }, 180);
+
+  if (searchInput) {
+    searchInput.addEventListener('input', () => {
+      debouncedFilterRender();
+    });
+
+    searchInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        searchInput.value = '';
+        renderFilteredProducts();
+      }
+    });
+  }
+
+  [categoryFilter, sportFilter, availabilityFilter].forEach((selectEl) => {
+    if (!selectEl) return;
+    selectEl.addEventListener('change', () => {
+      renderFilteredProducts();
+    });
+  });
+
+  if (clearFiltersBtn) {
+    clearFiltersBtn.addEventListener('click', () => {
+      resetFilters();
+      renderFilteredProducts();
+    });
+  }
+
+  tableBody.addEventListener('click', (event) => {
+    const button = event.target.closest('button[data-action]');
+    if (!button) return;
+
+    const row = button.closest('tr[data-product-id]');
+    if (!row) return;
+    const productId = Number.parseInt(row.dataset.productId, 10);
+    if (!Number.isInteger(productId)) return;
+
+    if (button.dataset.action === 'edit-product') {
+      const product = findProductById(productId);
+      if (!product) {
+        toast('No se encontro el producto', false);
+        return;
+      }
+      fillEditor(product);
+      return;
+    }
+
+    if (button.dataset.action === 'delete-product') {
+      handleDeleteProduct(productId, row);
+    }
+  });
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!Number.isInteger(editingProductId)) {
+      toast('Selecciona un producto para modificar', false);
+      return;
+    }
+
+    let body;
+    try {
+      body = await buildUpdatePayload();
+    } catch (error) {
+      toast(error.message || 'Datos de producto no validos', false);
+      return;
+    }
+
+    saveBtn.disabled = true;
+    cancelBtn.disabled = true;
+    try {
+      const response = await apiRequest(`/products/${editingProductId}`, {
+        method: 'PUT',
+        token: session.token,
+        body,
+      });
+      const updated = response?.data || response;
+      products = products.map((product) => (Number(product.id) === Number(editingProductId) ? updated : product));
+      updateFiltersFromProducts();
+      renderFilteredProducts();
+      fillEditor(updated);
+      toast('Producto actualizado correctamente', true);
+    } catch (error) {
+      toast(error.message || 'No se pudo actualizar el producto', false);
+    } finally {
+      saveBtn.disabled = false;
+      cancelBtn.disabled = false;
+    }
+  });
+
+  cancelBtn.addEventListener('click', () => {
+    setEditorState(false);
+  });
+
+  document.addEventListener('sd:product-created', () => {
+    loadProducts();
+  });
+
+  resetFilters();
+  updateFiltersFromProducts();
+  setEditorState(false);
+  loadProducts();
 })();
 
 (function initProfilePage() {
@@ -2104,7 +3149,7 @@ function renderUsers(users = []) {
       toast(successText, true);
 
       if (currentData?.fechaActualizacion) {
-        setMessage(`Ultima actualizacion: ${formatDateTime(currentData.fechaActualizacion)}`);
+        setMessage(`Ultima actualización: ${formatDateTime(currentData.fechaActualizacion)}`);
       } else {
         setMessage(successText);
       }
@@ -2249,7 +3294,7 @@ function renderUsers(users = []) {
     if (action === 'cancel') {
       exitEditMode(fieldKey);
       if (currentData?.fechaActualizacion) {
-        setMessage(`Ultima actualizacion: ${formatDateTime(currentData.fechaActualizacion)}`);
+        setMessage(`Ultima actualización: ${formatDateTime(currentData.fechaActualizacion)}`);
       }
     }
 
