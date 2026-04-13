@@ -1,4 +1,4 @@
-﻿const API_BASE = (() => {
+const API_BASE = (() => {
   if (typeof window === 'undefined') {
     return 'http://localhost:5000/api';
   }
@@ -60,7 +60,7 @@ async function apiRequest(path, { method = 'GET', body, token } = {}) {
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    const message = data?.message || 'Error en la comunicaciÃ³n con el servidor';
+    const message = data?.message || 'Error en la comunicación con el servidor';
     const error = new Error(message);
     error.details = data?.details;
     error.status = response.status;
@@ -93,6 +93,161 @@ function debounce(fn, delay = 300) {
       fn(...args);
     }, delay);
   };
+}
+
+const bufferedImagePromises = new Map();
+const TRANSPARENT_PIXEL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
+const lazyImageState = new WeakMap();
+const lazyImageObserver = (typeof window !== 'undefined' && 'IntersectionObserver' in window)
+  ? new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        const img = entry.target;
+        const pending = lazyImageState.get(img);
+        if (!pending) return;
+        lazyImageObserver.unobserve(img);
+        lazyImageState.delete(img);
+        applyFastImageSource(img, pending.main, pending.fallback);
+      });
+    }, {
+      rootMargin: '240px 0px',
+      threshold: 0.01,
+    })
+  : null;
+
+function preloadBufferedImage(src) {
+  if (!src) {
+    return Promise.reject(new Error('empty-src'));
+  }
+  const cached = bufferedImagePromises.get(src);
+  if (cached) return cached;
+
+  const promise = new Promise((resolve, reject) => {
+    const image = new Image();
+    image.decoding = 'async';
+    image.onload = () => resolve(src);
+    image.onerror = () => reject(new Error(`image-load-failed: ${src}`));
+    image.src = src;
+  });
+
+  bufferedImagePromises.set(src, promise);
+  promise.catch(() => bufferedImagePromises.delete(src));
+  return promise;
+}
+
+function setBufferedImage(imgElement, mainSrc, fallbackSrc = '') {
+  if (!imgElement) return;
+
+  const main = typeof mainSrc === 'string' ? mainSrc.trim() : '';
+  const fallback = typeof fallbackSrc === 'string' ? fallbackSrc.trim() : '';
+  const requestId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  imgElement.dataset.bufferRequestId = requestId;
+  imgElement.classList.add('img-buffering');
+
+  const commit = (src) => {
+    if (imgElement.dataset.bufferRequestId !== requestId) return;
+    if (src) {
+      imgElement.src = src;
+    }
+    imgElement.classList.remove('img-buffering');
+    imgElement.classList.add('img-buffered');
+  };
+
+  const loadAndCommit = (src) => preloadBufferedImage(src).then(() => commit(src));
+
+  if (main) {
+    loadAndCommit(main)
+      .catch(() => {
+        if (fallback && fallback !== main) {
+          return loadAndCommit(fallback);
+        }
+        commit(fallback || main);
+        return null;
+      })
+      .catch(() => {
+        commit(fallback || main);
+      });
+    return;
+  }
+
+  if (fallback) {
+    loadAndCommit(fallback)
+      .catch(() => {
+        commit(fallback);
+      });
+    return;
+  }
+
+  commit('');
+}
+
+function applyFastImageSource(imgElement, main = '', fallback = '') {
+  if (!imgElement) return;
+  if (lazyImageObserver) {
+    lazyImageObserver.unobserve(imgElement);
+  }
+  lazyImageState.delete(imgElement);
+
+  const finalSrc = main || fallback;
+  if (!finalSrc) {
+    imgElement.removeAttribute('src');
+    return;
+  }
+
+  if (fallback && main && main !== fallback) {
+    imgElement.onerror = () => {
+      imgElement.onerror = null;
+      imgElement.src = fallback;
+    };
+  } else {
+    imgElement.onerror = null;
+  }
+
+  imgElement.src = finalSrc;
+}
+
+function deferFastImageSource(imgElement, main = '', fallback = '') {
+  if (!imgElement || !lazyImageObserver) return;
+  lazyImageObserver.unobserve(imgElement);
+  lazyImageState.set(imgElement, { main, fallback });
+  imgElement.src = TRANSPARENT_PIXEL;
+  lazyImageObserver.observe(imgElement);
+}
+
+function setFastImage(imgElement, mainSrc, fallbackSrc = '') {
+  if (!imgElement) return;
+
+  const main = typeof mainSrc === 'string' ? mainSrc.trim() : '';
+  const fallback = typeof fallbackSrc === 'string' ? fallbackSrc.trim() : '';
+  imgElement.decoding = 'async';
+  imgElement.loading = 'lazy';
+  imgElement.fetchPriority = 'auto';
+
+  const finalSrc = main || fallback;
+  if (!finalSrc) {
+    if (lazyImageObserver) {
+      lazyImageObserver.unobserve(imgElement);
+    }
+    lazyImageState.delete(imgElement);
+    imgElement.removeAttribute('src');
+    return;
+  }
+
+  const canDefer = lazyImageObserver
+    && !imgElement.closest('.search-suggestions')
+    && imgElement.dataset.eagerImage !== 'true';
+
+  if (canDefer) {
+    const rect = imgElement.getBoundingClientRect();
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+    const farFromViewport = rect.top > viewportHeight + 200 || rect.bottom < -200;
+    if (farFromViewport) {
+      deferFastImageSource(imgElement, main, fallback);
+      return;
+    }
+  }
+
+  applyFastImageSource(imgElement, main, fallback);
 }
 
 function readFileAsDataUrl(file) {
@@ -145,8 +300,8 @@ function setupSearchSuggestions(input) {
 
         const img = document.createElement('img');
         img.className = 'search-suggestions__thumb';
-        img.src = product.imagen_url || placeholderImage;
         img.alt = product.nombre || 'Producto Sport4Data';
+        setFastImage(img, product.imagen_url, placeholderImage);
 
         const info = document.createElement('div');
         const name = document.createElement('div');
@@ -349,7 +504,7 @@ function updateHeaderUserLabel() {
     label.textContent = '';
     label.hidden = true;
     profileBtn.setAttribute('aria-label', 'Perfil');
-    profileBtn.setAttribute('title', 'Iniciar sesion');
+    profileBtn.setAttribute('title', 'Iniciar sesión');
   }
 }
 
@@ -443,10 +598,10 @@ function showLogoutConfirmInApp() {
         <div class="modal__panel modal__panel--confirm">
           <button class="modal__close" type="button" data-close-logout-modal-btn aria-label="Cerrar aviso">&times;</button>
           <div class="modal__content modal-confirm">
-            <h2 class="auth-card__title modal-confirm__title">Cerrar sesion</h2>
-            <p class="auth-card__subtitle modal-confirm__subtitle">Quieres cerrar sesion?</p>
+            <h2 class="auth-card__title modal-confirm__title">Cerrar sesión</h2>
+            <p class="auth-card__subtitle modal-confirm__subtitle">¿Quieres cerrar sesión?</p>
             <div class="modal-confirm__actions">
-              <button class="btn btn--primary" type="button" data-logout-confirm>Cerrar sesion</button>
+              <button class="btn btn--primary" type="button" data-logout-confirm>Cerrar sesión</button>
               <button class="btn btn--ghost" type="button" data-logout-cancel>Cancelar</button>
             </div>
           </div>
@@ -734,7 +889,7 @@ function renderUsers(users = []) {
       } catch (error) {
         list.innerHTML = '';
         const err = document.createElement('li');
-        err.textContent = 'Error al cargar la categoria.';
+        err.textContent = 'Error al cargar la categoría.';
         list.appendChild(err);
         failures += 1;
       } finally {
@@ -778,8 +933,8 @@ function renderUsers(users = []) {
       const image = document.createElement('img');
       image.className = 'product-card__image';
       image.loading = 'lazy';
-      image.src = product.imagen_url || placeholderImage;
       image.alt = product.nombre || 'Producto Sport4Data';
+      setFastImage(image, product.imagen_url, placeholderImage);
       card.appendChild(image);
 
       const title = document.createElement('h3');
@@ -804,7 +959,7 @@ function renderUsers(users = []) {
       if (product.categoria) {
         metaParts.push(product.categoria);
       }
-      meta.textContent = metaParts.join(' · ') || 'Sin categoria';
+      meta.textContent = metaParts.join(' · ') || 'Sin categoría';
       card.appendChild(meta);
 
       const badges = document.createElement('div');
@@ -826,7 +981,7 @@ function renderUsers(users = []) {
 
       const description = document.createElement('p');
       description.className = 'product-card__description';
-      description.textContent = product.descripcion || 'Sin descripcion disponible.';
+      description.textContent = product.descripcion || 'Sin descripción disponible.';
       card.appendChild(description);
 
       const actions = document.createElement('div');
@@ -987,7 +1142,7 @@ function renderUsers(users = []) {
       const image = document.createElement('img');
       image.className = 'product-card__image';
       image.loading = 'lazy';
-      image.src = product.imagen_url || 'https://images.unsplash.com/photo-1508609349937-5ec4ae374ebf?auto=format&fit=crop&w=700&q=80';
+      setFastImage(image, product.imagen_url, placeholderImage);
       image.alt = product.nombre || 'Producto Sport4Data';
       card.appendChild(image);
 
@@ -1153,7 +1308,11 @@ function renderUsers(users = []) {
           const image = document.createElement('img');
           image.className = 'product-card__image';
           image.loading = 'lazy';
-          image.src = product.imagen_url || 'https://images.unsplash.com/photo-1508609349937-5ec4ae374ebf?auto=format&fit=crop&w=700&q=80';
+          setFastImage(
+            image,
+            product.imagen_url,
+            'https://images.unsplash.com/photo-1508609349937-5ec4ae374ebf?auto=format&fit=crop&w=700&q=80',
+          );
           image.alt = product.nombre || 'Producto Sport4Data';
           card.appendChild(image);
 
@@ -1236,7 +1395,11 @@ function renderUsers(users = []) {
       const image = document.createElement('img');
       image.className = 'product-card__image';
       image.loading = 'lazy';
-      image.src = product.imagen_url || 'https://images.unsplash.com/photo-1508609349937-5ec4ae374ebf?auto=format&fit=crop&w=700&q=80';
+      setFastImage(
+        image,
+        product.imagen_url,
+        'https://images.unsplash.com/photo-1508609349937-5ec4ae374ebf?auto=format&fit=crop&w=700&q=80',
+      );
       image.alt = product.nombre || 'Producto';
       card.appendChild(image);
 
@@ -1406,16 +1569,48 @@ function renderUsers(users = []) {
       if (!summaryList) return;
       const row = document.createElement('div');
       row.className = 'summary-item';
-      const title = document.createElement('div');
+
+      const left = document.createElement('div');
+      left.className = 'summary-item__left';
+
+      let thumb;
+      if (product.imagen_url) {
+        thumb = document.createElement('img');
+        thumb.className = 'summary-item__thumb';
+        thumb.alt = product.nombre || 'Producto';
+        setFastImage(thumb, product.imagen_url);
+      } else {
+        thumb = document.createElement('span');
+        thumb.className = 'summary-item__thumb summary-item__thumb--fallback';
+        thumb.textContent = 'SD';
+      }
+
+      const details = document.createElement('div');
+      details.className = 'summary-item__details';
+      const title = document.createElement('p');
+      title.className = 'summary-item__name';
       title.textContent = product.nombre || 'Producto';
       const meta = document.createElement('div');
       meta.className = 'summary-item__meta';
       meta.textContent = `${item.quantity} uds x ${formatCurrency(price)}`;
-      const priceEl = document.createElement('div');
+      details.appendChild(title);
+      details.appendChild(meta);
+      left.appendChild(thumb);
+      left.appendChild(details);
+
+      const right = document.createElement('div');
+      right.className = 'summary-item__right';
+      const qty = document.createElement('span');
+      qty.className = 'summary-item__qty';
+      qty.textContent = `${item.quantity} uds`;
+      const priceEl = document.createElement('strong');
+      priceEl.className = 'summary-item__price';
       priceEl.textContent = formatCurrency(lineTotal);
-      row.appendChild(title);
-      row.appendChild(meta);
-      row.appendChild(priceEl);
+      right.appendChild(qty);
+      right.appendChild(priceEl);
+
+      row.appendChild(left);
+      row.appendChild(right);
       summaryList.appendChild(row);
     });
     if (totalEl) totalEl.textContent = formatCurrency(total);
@@ -1718,11 +1913,11 @@ function renderUsers(users = []) {
 
   function renderProduct(product) {
     if (imageEl) {
-      imageEl.src = product.imagen_url || placeholderImage;
       imageEl.alt = product.nombre || 'Producto Sport4Data';
+      setBufferedImage(imageEl, product.imagen_url, placeholderImage);
     }
     if (categoryEl) {
-      categoryEl.textContent = `${product.categoria || 'Sin categoria'} · ${product.deporte || '-'}`;
+      categoryEl.textContent = `${product.categoria || 'Sin categoría'} · ${product.deporte || '-'}`;
     }
     if (nameEl) {
       nameEl.textContent = product.nombre || 'Producto sport4data';
@@ -1731,7 +1926,7 @@ function renderUsers(users = []) {
       brandEl.textContent = product.marca ? `Marca: ${product.marca}` : '';
     }
     if (descriptionEl) {
-      descriptionEl.textContent = product.descripcion || 'Sin descripcion disponible.';
+      descriptionEl.textContent = product.descripcion || 'Sin descripción disponible.';
     }
     if (priceEl) {
       priceEl.textContent = formatCurrency(product.precio);
@@ -1811,7 +2006,7 @@ function renderUsers(users = []) {
     }
 
     if (!password || password.length < 8) {
-      setError($('#loginPassword'), 'MÃ­nimo 8 caracteres');
+      setError($('#loginPassword'), 'Mínimo 8 caracteres');
       ok = false;
     } else {
       setError($('#loginPassword'), '');
@@ -1861,7 +2056,7 @@ function renderUsers(users = []) {
       }
 
       if (!isValidEmail(email)) {
-        toast('Introduce un email valido', false);
+        toast('Introduce un email válido', false);
         return;
       }
 
@@ -1871,9 +2066,9 @@ function renderUsers(users = []) {
           body: { email },
         });
 
-        toast(payload?.message || 'Revisa tu correo para recuperar la contrasena', true);
+        toast(payload?.message || 'Revisa tu correo para recuperar la contraseña', true);
       } catch (error) {
-        toast(error.message || 'No se pudo enviar el correo de recuperacion', false);
+        toast(error.message || 'No se pudo enviar el correo de recuperación', false);
       }
     });
   }
@@ -1919,28 +2114,28 @@ function renderUsers(users = []) {
 
     const normalizedEmail = normalizeEmail(email);
     if (!isValidEmail(normalizedEmail)) {
-      setError($('#email'), 'Email no valido');
+      setError($('#email'), 'Email no válido');
       ok = false;
     } else {
       $('#email').value = normalizedEmail;
       setError($('#email'), '');
     }
     if (!password || password.length < 8) {
-      setError($('#password'), 'MÃ­nimo 8 caracteres');
+      setError($('#password'), 'Mínimo 8 caracteres');
       ok = false;
     } else {
       setError($('#password'), '');
     }
 
     if (password !== password2) {
-      setError($('#password2'), 'Las contraseÃ±as no coinciden');
+      setError($('#password2'), 'Las contraseñas no coinciden');
       ok = false;
     } else {
       setError($('#password2'), '');
     }
 
     if (!direccion) {
-      setError($('#direccion'), 'La direcciÃ³n es obligatoria');
+      setError($('#direccion'), 'La dirección es obligatoria');
       ok = false;
     } else {
       setError($('#direccion'), '');
@@ -1989,7 +2184,7 @@ function renderUsers(users = []) {
 
   if (session) {
     if (welcomeEl) {
-      welcomeEl.textContent = `Sesion iniciada como ${session.email}`;
+      welcomeEl.textContent = `Sesión iniciada como ${session.email}`;
     }
     if (form) {
       form.setAttribute('hidden', 'true');
@@ -1998,7 +2193,7 @@ function renderUsers(users = []) {
       shortcut.hidden = false;
     }
     if (shortcutMessage) {
-      shortcutMessage.textContent = `Sesion iniciada como ${session.email}`;
+      shortcutMessage.textContent = `Sesión iniciada como ${session.email}`;
     }
     if (goProfileBtn) {
       goProfileBtn.hidden = false;
@@ -2271,7 +2466,7 @@ function renderUsers(users = []) {
     clearPreviewUrl();
     selectedImage = null;
     imageInput.value = '';
-    imageNameEl.textContent = 'Ningun archivo seleccionado';
+    imageNameEl.textContent = 'Ningún archivo seleccionado';
     imagePreview.hidden = true;
     imagePreviewImg.src = '';
     setImageError('');
@@ -2285,7 +2480,7 @@ function renderUsers(users = []) {
     setImageError('');
 
     if (!file) {
-      imageNameEl.textContent = 'Ningun archivo seleccionado';
+      imageNameEl.textContent = 'Ningún archivo seleccionado';
       return;
     }
 
@@ -2298,11 +2493,11 @@ function renderUsers(users = []) {
 
   function buildValidationMessage(payload) {
     if (!payload.nombre) return 'El nombre es obligatorio';
-    if (!payload.categoria) return 'Selecciona una categoria';
+    if (!payload.categoria) return 'Selecciona una categoría';
     if (!payload.deporte) return 'Selecciona un deporte';
     if (!payload.color) return 'El color es obligatorio';
     if (!payload.marca) return 'La marca es obligatoria';
-    if (!payload.descripcion) return 'La descripcion es obligatoria';
+    if (!payload.descripcion) return 'La descripción es obligatoria';
     if (!selectedImage) return 'Selecciona una imagen del producto';
     return '';
   }
@@ -2342,14 +2537,14 @@ function renderUsers(users = []) {
     }
 
     if (!Number.isFinite(precio) || precio < 0) {
-      const message = 'Introduce un precio valido';
+      const message = 'Introduce un precio válido';
       setMessage(message);
       toast(message, false);
       return;
     }
 
     if (!Number.isInteger(stock) || stock < 0) {
-      const message = 'Introduce un stock valido';
+      const message = 'Introduce un stock válido';
       setMessage(message);
       toast(message, false);
       return;
@@ -2550,7 +2745,7 @@ function renderUsers(users = []) {
   function clearSelectedEditorImage() {
     selectedEditImage = null;
     imageInput.value = '';
-    imageFileNameEl.textContent = 'Se mantendra la imagen actual';
+    imageFileNameEl.textContent = 'Se mantendrá la imagen actual';
     setImageError('');
     clearEditPreviewUrl();
     setEditorImagePreview(currentEditorImageUrl);
@@ -2583,7 +2778,7 @@ function renderUsers(users = []) {
       clearEditPreviewUrl();
       imagePreviewImg.src = '';
       imagePreview.hidden = true;
-      imageFileNameEl.textContent = 'Se mantendra la imagen actual';
+      imageFileNameEl.textContent = 'Se mantendrá la imagen actual';
       setImageError('');
       selectedEditImage = null;
     }
@@ -2625,11 +2820,11 @@ function renderUsers(users = []) {
     const stockValue = Number.parseInt(stockInput.value, 10);
 
     if (!payload.nombre) throw new Error('El nombre del producto es obligatorio');
-    if (!payload.categoria) throw new Error('La categoria es obligatoria');
+    if (!payload.categoria) throw new Error('La categoría es obligatoria');
     if (!payload.deporte) throw new Error('El deporte es obligatorio');
     if (!payload.marca) throw new Error('La marca es obligatoria');
-    if (!Number.isFinite(priceValue) || priceValue < 0) throw new Error('El precio no es valido');
-    if (!Number.isInteger(stockValue) || stockValue < 0) throw new Error('El stock no es valido');
+    if (!Number.isFinite(priceValue) || priceValue < 0) throw new Error('El precio no es válido');
+    if (!Number.isInteger(stockValue) || stockValue < 0) throw new Error('El stock no es válido');
 
     payload.precio = Number(priceValue.toFixed(2));
     payload.stock = stockValue;
@@ -2665,8 +2860,8 @@ function renderUsers(users = []) {
       imageCell.className = 'admin-product-media';
       const img = document.createElement('img');
       img.className = 'admin-product-thumb';
-      img.src = product.imagen_url || placeholderImage;
       img.alt = product.nombre || 'Producto';
+      setFastImage(img, product.imagen_url, placeholderImage);
       imageCell.appendChild(img);
       row.appendChild(imageCell);
 
@@ -2733,7 +2928,7 @@ function renderUsers(users = []) {
       .map((product) => product?.deporte)
       .filter(Boolean);
 
-    syncFilterSelectOptions(categoryFilter, categories, 'Todas las categorias');
+    syncFilterSelectOptions(categoryFilter, categories, 'Todas las categorías');
     syncFilterSelectOptions(sportFilter, sports, 'Todos los deportes');
   }
 
@@ -2887,7 +3082,7 @@ function renderUsers(users = []) {
     selectedEditImage = null;
 
     if (!file) {
-      imageFileNameEl.textContent = 'Se mantendra la imagen actual';
+      imageFileNameEl.textContent = 'Se mantendrá la imagen actual';
       setEditorImagePreview(currentEditorImageUrl);
       return;
     }
@@ -2973,7 +3168,7 @@ function renderUsers(users = []) {
     try {
       body = await buildUpdatePayload();
     } catch (error) {
-      toast(error.message || 'Datos de producto no validos', false);
+      toast(error.message || 'Datos de producto no válidos', false);
       return;
     }
 
@@ -3042,14 +3237,14 @@ function renderUsers(users = []) {
     },
     {
       key: 'direccion',
-      label: 'Direccion',
+      label: 'Dirección',
       editable: true,
       multiline: true,
-      placeholder: 'Direccion completa',
+      placeholder: 'Dirección completa',
     },
     {
       key: 'password',
-      label: 'Contrasena',
+      label: 'Contraseña',
       editable: true,
       type: 'password',
       maskValue: true,
@@ -3144,12 +3339,12 @@ function renderUsers(users = []) {
       }
 
       const successText = field.key === 'password'
-        ? 'Contrasena actualizada correctamente.'
+        ? 'Contraseña actualizada correctamente.'
         : 'Dato actualizado correctamente.';
       toast(successText, true);
 
       if (currentData?.fechaActualizacion) {
-        setMessage(`Ultima actualización: ${formatDateTime(currentData.fechaActualizacion)}`);
+        setMessage(`Última actualización: ${formatDateTime(currentData.fechaActualizacion)}`);
       } else {
         setMessage(successText);
       }
@@ -3182,13 +3377,13 @@ function renderUsers(users = []) {
       const newInput = document.createElement('input');
       newInput.type = 'password';
       newInput.dataset.role = 'new-password';
-      newInput.placeholder = 'Nueva contrasena (min. 8 caracteres)';
+      newInput.placeholder = 'Nueva contraseña (min. 8 caracteres)';
       newInput.autocomplete = 'new-password';
 
       const confirmInput = document.createElement('input');
       confirmInput.type = 'password';
       confirmInput.dataset.role = 'confirm-password';
-      confirmInput.placeholder = 'Repite la contrasena';
+      confirmInput.placeholder = 'Repite la contraseña';
       confirmInput.autocomplete = 'new-password';
 
       group.appendChild(newInput);
@@ -3197,7 +3392,7 @@ function renderUsers(users = []) {
 
       const hint = document.createElement('p');
       hint.className = 'profile-hint';
-      hint.textContent = 'Asegurate de que coincidan y tengan al menos 8 caracteres.';
+      hint.textContent = 'Asegúrate de que coincidan y tengan al menos 8 caracteres.';
       valueEl.appendChild(hint);
 
       newInput.focus();
@@ -3285,7 +3480,7 @@ function renderUsers(users = []) {
         return;
       }
       if (editingField && editingField !== fieldKey) {
-        toast('Termina la edicion actual antes de modificar otro dato.', false);
+        toast('Termina la edición actual antes de modificar otro dato.', false);
         return;
       }
       enterEditMode(field);
@@ -3294,7 +3489,7 @@ function renderUsers(users = []) {
     if (action === 'cancel') {
       exitEditMode(fieldKey);
       if (currentData?.fechaActualizacion) {
-        setMessage(`Ultima actualización: ${formatDateTime(currentData.fechaActualizacion)}`);
+        setMessage(`Última actualización: ${formatDateTime(currentData.fechaActualizacion)}`);
       }
     }
 
@@ -3306,11 +3501,11 @@ function renderUsers(users = []) {
         const confirmPassword = confirmInput?.value.trim() ?? '';
 
         if (newPassword.length < 8) {
-          toast('La contrasena debe tener al menos 8 caracteres.', false);
+          toast('La contraseña debe tener al menos 8 caracteres.', false);
           return;
         }
         if (newPassword !== confirmPassword) {
-          toast('Las contrasenas no coinciden.', false);
+          toast('Las contraseñas no coinciden.', false);
           return;
         }
 
@@ -3325,11 +3520,11 @@ function renderUsers(users = []) {
 
       const newValue = input.value.trim();
       if (!newValue) {
-        toast('El valor no puede quedar vacio.', false);
+        toast('El valor no puede quedar vacío.', false);
         return;
       }
       if (field.key === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newValue)) {
-        toast('Introduce un email valido.', false);
+        toast('Introduce un email válido.', false);
         return;
       }
 
@@ -3344,7 +3539,7 @@ function renderUsers(users = []) {
       currentData = payload?.data || null;
       renderValues();
       if (currentData?.fechaActualizacion) {
-        setMessage(`Ultima actualizacion: ${formatDateTime(currentData.fechaActualizacion)}`);
+        setMessage(`Última actualización: ${formatDateTime(currentData.fechaActualizacion)}`);
       } else {
         setMessage('No se encontraron datos de perfil.');
       }

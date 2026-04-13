@@ -92,6 +92,9 @@ services:
       ORDERS_MONGO_URI: mongodb://orders-db:27017/sportdata_orders
       PRODUCT_SERVICE_URL: http://product-service:8002
       JWT_SECRET: ${JWT_SECRET:-sportdata-dev-secret}
+      MAIL_USER: ${MAIL_USER:-}
+      MAIL_APP_PASSWORD: ${MAIL_APP_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:-}
     depends_on:
       - orders-db
       - product-service

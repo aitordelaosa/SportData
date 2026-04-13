@@ -3,6 +3,7 @@ const Order = require('../models/Order');
 const CartItem = require('../models/CartItem');
 const { authenticate } = require('../middleware/auth');
 const { getProduct } = require('../utils/productClient');
+const { sendOrderReceivedEmail } = require('../utils/mailService');
 
 const router = express.Router();
 
@@ -122,6 +123,25 @@ router.post('/checkout', async (req, res, next) => {
     });
 
     await CartItem.deleteMany({ userId: req.user.id });
+
+    const recipientEmail = shipping?.email;
+    sendOrderReceivedEmail({ to: recipientEmail, order })
+      .then((result) => {
+        if (!result?.sent) {
+          // eslint-disable-next-line no-console
+          console.warn('[orders-service] order email not sent', {
+            orderId: String(order._id),
+            reason: result?.reason || 'unknown',
+          });
+        }
+      })
+      .catch((mailError) => {
+        // eslint-disable-next-line no-console
+        console.error('[orders-service] order email error', {
+          orderId: String(order._id),
+          error: mailError?.message || 'unknown',
+        });
+      });
 
     return res.status(201).json({ data: order });
   } catch (error) {

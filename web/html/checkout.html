@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../css/stilo.css?v=3" />
+  <link rel="stylesheet" href="../css/stilo.css?v=6" />
 </head>
 <body class="theme-dark">
   <header class="sd-header">
@@ -44,23 +44,38 @@
 
   <main class="category-layout" data-checkout-view>
     <section class="home-section checkout">
-      <header class="home-section__header">
-        <div>
+      <header class="home-section__header checkout-hero">
+        <div class="checkout-hero__left">
           <p class="breadcrumb"><a href="cart.html">Carrito</a> / Checkout</p>
           <h2>Entrega y pago</h2>
-          <p id="checkoutMessage">Revisa tus datos de envío y pago antes de confirmar.</p>
+          <p id="checkoutMessage" class="checkout-hero__status">Revisa tus datos de envío y pago antes de confirmar.</p>
+          <div class="checkout-trust" aria-label="Ventajas del checkout">
+            <span class="checkout-trust__item">Pago cifrado</span>
+            <span class="checkout-trust__item">Confirmación inmediata</span>
+            <span class="checkout-trust__item">Soporte 24/7</span>
+          </div>
         </div>
-        <div class="checkout-badges">
-          <span class="badge">Paso 1: Envío</span>
-          <span class="badge">Paso 2: Pago</span>
-        </div>
+        <ol class="checkout-steps" aria-label="Progreso del checkout">
+          <li class="checkout-step checkout-step--active">
+            <span class="checkout-step__dot">1</span>
+            <span class="checkout-step__label">Envío</span>
+          </li>
+          <li class="checkout-step checkout-step--active">
+            <span class="checkout-step__dot">2</span>
+            <span class="checkout-step__label">Pago</span>
+          </li>
+          <li class="checkout-step">
+            <span class="checkout-step__dot">3</span>
+            <span class="checkout-step__label">Confirmación</span>
+          </li>
+        </ol>
       </header>
 
       <div class="checkout-grid">
         <form class="checkout-card" id="checkoutForm" novalidate>
           <div class="form-block">
             <div class="form-block__header">
-              <h3>Entrega a domicilio</h3>
+              <h3><span class="form-block__step">1</span>Entrega a domicilio</h3>
               <span class="form-block__tag">Datos de envío para la entrega del pedido</span>
             </div>
 
@@ -149,7 +164,7 @@
 
           <div class="form-block">
             <div class="form-block__header">
-              <h3>Método de pago</h3>
+              <h3><span class="form-block__step">2</span>Método de pago</h3>
               <span class="form-block__tag">Tarjeta de débito o crédito</span>
             </div>
 
@@ -235,6 +250,10 @@
             <h3>Resumen del pedido</h3>
             <span class="form-block__tag">Productos añadidos</span>
           </div>
+          <div class="checkout-summary__info">
+            <span class="checkout-summary__pill">Entrega estándar</span>
+            <span class="checkout-summary__pill checkout-summary__pill--ok">Simulación activa</span>
+          </div>
           <div id="checkoutSummaryList" class="summary-list"></div>
           <div class="summary-empty" id="checkoutEmpty" hidden>Tu carrito está vacío.</div>
           <div class="checkout-total">
@@ -251,6 +270,9 @@
     <small>&copy; SportData - Checkout</small>
   </footer>
 
-  <script src="../js/app.js?v=8" defer></script>
+  <script src="../js/app.js?v=14" defer></script>
 </body>
 </html>
+
+
+
