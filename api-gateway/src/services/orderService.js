@@ -65,6 +65,13 @@ async function checkout(token, payload = {}) {
   return res.data?.data || res.data;
 }
 
+async function getAdminStats(token) {
+  const res = await orderServiceClient.get('/orders/admin/stats', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.data?.data || res.data;
+}
+
 module.exports = {
   listCart,
   addCartItem,
@@ -75,4 +82,5 @@ module.exports = {
   deleteFavorite,
   listOrders,
   checkout,
+  getAdminStats,
 };

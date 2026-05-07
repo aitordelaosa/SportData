@@ -1,65 +1,58 @@
-﻿## SportData
- Web para explorar y comprar material deportivo. Se apoya en una arquitectura de microservicios conectados a traves de un API Gateway que expone tanto la interfaz HTML5 como la API (OpenAPI 3.0). El usuario puede navegar catalogo, gestionar carrito, tramitar pedidos, marcar favoritos y administrar cuentas.
+# SportData
 
-### Estructura del proyecto
+Plataforma web para explorar y comprar material deportivo. El sistema esta terminado y funciona sobre una arquitectura de microservicios conectados por un API Gateway. Desde el frontend se puede navegar catalogo, gestionar carrito, marcar favoritos, completar checkout y consultar pedidos.
+
+## Arquitectura
+
 Carpeta | Descripcion
-------- | -----------
-api-gateway | Gateway Node.js que actua como proxy inverso hacia los microservicios y agrega la API publica bajo `/api`.
-microservicioUsuarios | Backend Express + MongoDB para registro, login, perfil y roles.
-microservicioProductos | FastAPI + PostgreSQL con el catalogo de productos y assets estaticos.
-microservicioPedidos | Servicio Express + MongoDB que gestiona carrito, favoritos y pedidos.
-web | Frontend estatico (HTML, CSS, JS) servido por Nginx a traves del gateway.
+--- | ---
+`api-gateway` | Gateway Node.js que agrega la API publica bajo `/api` y enruta peticiones a usuarios, productos y pedidos.
+`microservicioUsuarios` | Express + MongoDB para registro, login, perfil y gestion de roles.
+`microservicioProductos` | FastAPI + PostgreSQL para catalogo, filtros, stock y recursos estaticos.
+`microservicioPedidos` | Express + MongoDB para carrito, favoritos, checkout y estadisticas de pedidos.
+`web` | Frontend estatico (HTML/CSS/JS).
+`static` | Imagenes y assets de productos.
 
-### Flujo recomendado: Docker Compose
-1. Requisitos previos
-   - Ten Docker y Docker Compose instalados.
-   - Abre la aplicación Docker
-   - Descarga o clona el repo y abre una terminal en la raiz.
-   - Opcional: crea un `.env` en la raiz para compartir el secreto JWT:
-     ```env
-     JWT_SECRET=super-clave-segura
-     MAIL_USER=tu_cuenta@gmail.com
-     MAIL_APP_PASSWORD=tu_app_password_de_gmail
-     MAIL_FROM=SportData <tu_cuenta@gmail.com>
-     ```
-     Si no lo defines se usa `sportdata-dev-secret`.
-2. Construye y levanta todos los servicios:
+## Flujo recomendado (Docker Compose)
+
+1. Requisitos:
+   - Docker y Docker Compose.
+   - Terminal en la raiz del repositorio.
+2. Crea opcionalmente un `.env` en la raiz:
+   ```env
+   JWT_SECRET=super-clave-segura
+   MAIL_USER=tu_cuenta@gmail.com
+   MAIL_APP_PASSWORD=tu_app_password_de_gmail
+   MAIL_FROM=SportData <tu_cuenta@gmail.com>
+   ```
+   Si `JWT_SECRET` no se define, se usa `sportdata-dev-secret`.
+3. Construye y levanta todo:
    ```bash
    docker compose up --build -d
    ```
-3. Verifica que los contenedores estan arriba:
+4. Verifica estado:
    ```bash
    docker compose ps
    ```
-4. Accede al frontend en `http://localhost:8080/html/index.html` o `http://localhost:8080/html/cart.html`. El frontend consume siempre el gateway (`http://localhost:5000/api`).
-5. Servicios que quedan levantados:
-   - `mongo` y `orders-db`: bases MongoDB para usuarios y pedidos.
-   - `products-db`: PostgreSQL con el catalogo.
-   - `user-service`: Express (puerto 4001 interno).
-   - `product-service`: FastAPI (puerto 8002 interno).
-   - `orders-service`: Express pedidos/carrito (puerto 7000 interno).
-   - `api-gateway`: expone `/api` en `http://localhost:5000`.
-   - `frontend`: Nginx sirviendo `web` en `http://localhost:8080`.
+5. Abre el frontend:
+   - `http://127.0.0.1:8080`
+   - `http://127.0.0.1:8080/html/cart.html`
 
-### Flujo alternativo: Arranque manual (sin Docker)
-1. Arranca las bases de datos (o usa instalaciones locales):
+## Arranque manual (sin Docker)
+
+1. Arranca las bases de datos:
    - MongoDB usuarios: `docker run -p 27018:27017 mongo:6`
    - MongoDB pedidos: `docker run -p 27019:27017 mongo:6`
-   - PostgreSQL productos: `docker run -p 5432:5432 -e POSTGRES_USER=sport4data -e POSTGRES_PASSWORD=sport4data -e POSTGRES_DB=sport4data postgres:15`
-2. Prepara las variables de entorno copiando cada `.env.example` a `.env`. Valores minimos:
-   - Raiz: `JWT_SECRET` (compartido).
-   - microservicioUsuarios: `MONGO_URI`, `PORT`, `JWT_SECRET`, `MAIL_USER`, `MAIL_APP_PASSWORD`, `MAIL_FROM`.
-   - microservicioProductos: `PRODUCTS_DATABASE_URL`, `PRODUCTS_STATIC_DIR`, `PRODUCTS_STATIC_BASE_URL`.
-   - microservicioPedidos: `ORDERS_MONGO_URI`, `PRODUCT_SERVICE_URL`, `JWT_SECRET`.
-   - api-gateway: `USER_SERVICE_URL`, `PRODUCT_SERVICE_URL`, `ORDER_SERVICE_URL`, `PORT`, `JWT_SECRET`.
-3. Inicia microservicio de usuarios (Node.js):
+   - PostgreSQL productos:
+     `docker run -p 5432:5432 -e POSTGRES_USER=sport4data -e POSTGRES_PASSWORD=sport4data -e POSTGRES_DB=sport4data postgres:15`
+2. Usuarios:
    ```bash
    cd microservicioUsuarios
    cp .env.example .env
    npm install
-   npm run dev   # http://localhost:4001
+   npm run dev
    ```
-4. Inicia microservicio de productos (Python/FastAPI):
+3. Productos:
    ```bash
    cd microservicioProductos
    python -m venv .venv && .venv\Scripts\activate
@@ -67,40 +60,48 @@ web | Frontend estatico (HTML, CSS, JS) servido por Nginx a traves del gateway.
    cp .env.example .env
    uvicorn app.main:app --reload --port 8002
    ```
-5. Inicia microservicio de pedidos (Node.js):
+4. Pedidos (este servicio no incluye `.env.example`):
    ```bash
    cd microservicioPedidos
-   cp .env.example .env   # crea uno si no existe
    npm install
-   npm run dev   # http://localhost:7000
+   npm run dev
    ```
-6. Inicia el API Gateway (Node.js):
+   Variables minimas recomendadas:
+   - `PORT=7000`
+   - `ORDERS_MONGO_URI=mongodb://localhost:27019/sportdata_orders`
+   - `PRODUCT_SERVICE_URL=http://localhost:8002`
+   - `JWT_SECRET=<mismo valor que usuarios y gateway>`
+5. API Gateway:
    ```bash
    cd api-gateway
    cp .env.example .env
    npm install
-   npm run dev   # http://localhost:5000/api
+   npm run dev
    ```
-7. Sirve el frontend estatico:
+6. Frontend estatico:
    ```bash
    cd web
    python -m http.server 8080
    ```
 
-### Servicios expuestos
-Servicio | URL/Conexion
--------- | ------------
-Frontend | http://localhost:8080
-API Gateway | http://localhost:5000/api
-Usuarios | http://localhost:4001/api
-Productos | http://localhost:8002/products (Swagger en `/docs`)
-Pedidos | http://localhost:7000 (health en `/health`)
-MongoDB usuarios | mongodb://localhost:27018/sportdata_usuarios
-MongoDB pedidos | mongodb://localhost:27019/sportdata_orders
-PostgreSQL productos | postgres://sport4data:sport4data@localhost:5432/sport4data
+## Servicios expuestos
 
-### Detener y limpiar
-- Pausar: `docker compose stop`
-- Reanudar: `docker compose start`
-- Bajar todo: `docker compose down`
-- Bajar y borrar datos (volumenes): `docker compose down -v`
+Servicio | URL / Conexion
+--- | ---
+Frontend | `http://127.0.0.1:8080`
+API Gateway (base API) | `http://127.0.0.1:5000/api`
+Swagger Gateway | `http://127.0.0.1:5000/docs`
+Usuarios | `http://127.0.0.1:4001/api` (`/api/health` y `/health` para salud)
+Productos (base API) | `http://127.0.0.1:8002/products`
+Swagger Productos | `http://127.0.0.1:8002/docs`
+Pedidos | `http://127.0.0.1:7000` (`/health` para salud)
+MongoDB usuarios | `mongodb://127.0.0.1:27018/sportdata_usuarios`
+MongoDB pedidos | `mongodb://127.0.0.1:27019/sportdata_orders`
+PostgreSQL productos | `postgres://sport4data:sport4data@127.0.0.1:5432/sport4data`
+
+## Comandos utiles
+
+- Parar servicios: `docker compose stop`
+- Reanudar servicios: `docker compose start`
+- Bajar servicios: `docker compose down`
+- Bajar y borrar volumenes: `docker compose down -v`

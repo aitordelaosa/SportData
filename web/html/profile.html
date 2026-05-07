@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../css/stilo.css?v=6" />
+  <link rel="stylesheet" href="../css/stilo.css?v=11" />
 </head>
 <body class="theme-dark">
   <header class="sd-header">
@@ -63,6 +63,9 @@
         </button>
         <button class="admin-tabs__tab" type="button" role="tab" aria-selected="false" data-admin-tab="manage-products">
           Modificar / Eliminar producto
+        </button>
+        <button class="admin-tabs__tab" type="button" role="tab" aria-selected="false" data-admin-tab="analytics">
+          Estadisticas
         </button>
       </div>
     </section>
@@ -310,14 +313,98 @@
         </form>
       </section>
     </section>
+
+    <section class="auth-card auth-card--list" id="analyticsSection" hidden>
+      <h2 class="auth-card__title">ANALYTICS DE PEDIDOS</h2>
+      <p class="auth-card__subtitle" id="analyticsMessage"></p>
+
+      <div class="analytics-kpis">
+        <article class="analytics-kpi">
+          <span class="analytics-kpi__label">Ingresos totales</span>
+          <strong class="analytics-kpi__value" id="kpiTotalRevenue">-</strong>
+        </article>
+        <article class="analytics-kpi">
+          <span class="analytics-kpi__label">Total pedidos</span>
+          <strong class="analytics-kpi__value" id="kpiTotalOrders">-</strong>
+        </article>
+        <article class="analytics-kpi">
+          <span class="analytics-kpi__label">Ticket medio</span>
+          <strong class="analytics-kpi__value" id="kpiAverageTicket">-</strong>
+        </article>
+        <article class="analytics-kpi">
+          <span class="analytics-kpi__label">Clientes unicos</span>
+          <strong class="analytics-kpi__value" id="kpiUniqueCustomers">-</strong>
+        </article>
+        <article class="analytics-kpi">
+          <span class="analytics-kpi__label">Productos vendidos</span>
+          <strong class="analytics-kpi__value" id="kpiProductsSold">-</strong>
+        </article>
+      </div>
+
+      <div class="analytics-empty" id="analyticsEmpty" hidden></div>
+
+      <div class="analytics-grid" id="analyticsGrid">
+        <article class="analytics-panel analytics-panel--tone-amber analytics-panel--wide">
+          <h3 class="analytics-panel__title">Ventas por mes</h3>
+          <div class="analytics-chart">
+            <canvas id="salesByMonthChart" role="img" aria-label="Grafica de ventas por mes"></canvas>
+          </div>
+        </article>
+
+        <article class="analytics-panel analytics-panel--tone-violet">
+          <h3 class="analytics-panel__title">Pedidos por estado</h3>
+          <div class="analytics-chart analytics-chart--compact">
+            <canvas id="ordersByStatusChart" role="img" aria-label="Grafica de pedidos por estado"></canvas>
+          </div>
+        </article>
+
+        <article class="analytics-panel analytics-panel--tone-cyan">
+          <h3 class="analytics-panel__title">Evolucion del ticket medio</h3>
+          <div class="analytics-chart analytics-chart--compact">
+            <canvas id="averageTicketChart" role="img" aria-label="Grafica de ticket medio por mes"></canvas>
+          </div>
+        </article>
+
+        <article class="analytics-panel analytics-panel--tone-green analytics-panel--wide">
+          <h3 class="analytics-panel__title">Top productos vendidos</h3>
+          <div class="analytics-chart">
+            <canvas id="topProductsChart" role="img" aria-label="Grafica de productos mas vendidos"></canvas>
+          </div>
+        </article>
+
+        <article class="analytics-panel analytics-panel--tone-violet analytics-panel--wide">
+          <h3 class="analytics-panel__title">Producto mas comprado por mes</h3>
+          <div class="analytics-chart">
+            <canvas id="topProductsByMonthChart" role="img" aria-label="Grafica de top productos por mes"></canvas>
+          </div>
+        </article>
+
+        <article class="analytics-panel analytics-panel--tone-indigo analytics-panel--wide">
+          <h3 class="analytics-panel__title" id="ordersByZoneTitle">Pedidos y ventas por país</h3>
+          <div class="analytics-chart">
+            <canvas id="ordersByZoneChart" role="img" aria-label="Grafica de pedidos y ventas por zona"></canvas>
+          </div>
+        </article>
+
+        <article class="analytics-panel analytics-panel--tone-sun analytics-panel--wide analytics-panel--zone-ticket">
+          <h3 class="analytics-panel__title" id="zoneTicketTitle">Ticket medio por zona</h3>
+          <div class="analytics-chart">
+            <canvas id="zoneTicketChart" role="img" aria-label="Grafica de ticket medio por zona"></canvas>
+          </div>
+        </article>
+      </div>
+    </section>
   </main>
 
   <footer class="sd-footer">
     <small>&copy; SportData - Demo UI</small>
   </footer>
 
-  <script src="../js/app.js?v=14" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" defer></script>
+  <script src="../js/app.js?v=21" defer></script>
 </body>
 </html>
+
+
 
 

@@ -6,6 +6,19 @@ const router = express.Router();
 
 router.use(authenticate);
 
+router.get('/admin/stats', async (req, res, next) => {
+  try {
+    if (req.user?.rol !== 'admin') {
+      return res.status(403).json({ message: 'Permisos insuficientes' });
+    }
+
+    const data = await orderService.getAdminStats(req.token);
+    return res.json(data);
+  } catch (error) {
+    return next(error);
+  }
+});
+
 router.get('/cart', async (req, res, next) => {
   try {
     const data = await orderService.listCart(req.token);

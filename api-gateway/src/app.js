@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const routes = require('./routes');
+const { buildOpenApiSpec, renderSwaggerHtml } = require('./docs/openapi');
 const { notFoundHandler, errorHandler } = require('./middleware/errorHandler');
 
 function createApp() {
@@ -20,6 +21,14 @@ function createApp() {
       service: 'api-gateway',
       timestamp: new Date().toISOString(),
     });
+  });
+
+  app.get('/openapi.json', (req, res) => {
+    res.json(buildOpenApiSpec(req));
+  });
+
+  app.get(['/docs', '/api/docs'], (req, res) => {
+    res.type('html').send(renderSwaggerHtml('/openapi.json'));
   });
 
   app.use('/api', routes);

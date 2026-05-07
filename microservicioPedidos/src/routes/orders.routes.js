@@ -73,6 +73,29 @@ function buildPayment(raw = {}) {
   return payment;
 }
 
+function normalizedGroupLabel(path, fallbackLabel) {
+  return {
+    $let: {
+      vars: {
+        normalized: {
+          $trim: {
+            input: {
+              $toLower: {
+                $toString: {
+                  $ifNull: [path, ''],
+                },
+              },
+            },
+          },
+        },
+      },
+      in: {
+        $cond: [{ $eq: ['$$normalized', ''] }, fallbackLabel, '$$normalized'],
+      },
+    },
+  };
+}
+
 router.use(authenticate);
 
 router.get('/', async (req, res, next) => {
@@ -81,6 +104,317 @@ router.get('/', async (req, res, next) => {
     res.json({ data: orders });
   } catch (error) {
     next(error);
+  }
+});
+
+router.get('/admin/stats', async (req, res, next) => {
+  try {
+    if (String(req.user?.rol || '').toLowerCase() !== 'admin') {
+      return res.status(403).json({ message: 'Permisos insuficientes' });
+    }
+
+    const [stats] = await Order.aggregate([
+      {
+        $facet: {
+          summary: [
+            {
+              $group: {
+                _id: null,
+                totalRevenue: {
+                  $sum: { $ifNull: ['$total', 0] },
+                },
+                totalOrders: { $sum: 1 },
+                uniqueCustomersRaw: {
+                  $addToSet: {
+                    $trim: {
+                      input: {
+                        $toString: {
+                          $ifNull: ['$userId', ''],
+                        },
+                      },
+                    },
+                  },
+                },
+                totalProductsSold: {
+                  $sum: {
+                    $reduce: {
+                      input: { $ifNull: ['$items', []] },
+                      initialValue: 0,
+                      in: {
+                        $add: ['$$value', { $ifNull: ['$$this.quantity', 0] }],
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            {
+              $project: {
+                _id: 0,
+                totalRevenue: { $round: ['$totalRevenue', 2] },
+                totalOrders: 1,
+                averageTicket: {
+                  $cond: [
+                    { $gt: ['$totalOrders', 0] },
+                    { $round: [{ $divide: ['$totalRevenue', '$totalOrders'] }, 2] },
+                    0,
+                  ],
+                },
+                uniqueCustomers: {
+                  $size: {
+                    $filter: {
+                      input: '$uniqueCustomersRaw',
+                      as: 'customerId',
+                      cond: { $ne: ['$$customerId', ''] },
+                    },
+                  },
+                },
+                totalProductsSold: 1,
+              },
+            },
+          ],
+          salesByMonth: [
+            {
+              $addFields: {
+                orderDate: { $ifNull: ['$createdAt', '$updatedAt'] },
+              },
+            },
+            {
+              $match: {
+                orderDate: { $type: 'date' },
+              },
+            },
+            {
+              $group: {
+                _id: {
+                  $dateToString: {
+                    format: '%Y-%m',
+                    date: '$orderDate',
+                  },
+                },
+                revenue: {
+                  $sum: { $ifNull: ['$total', 0] },
+                },
+                orders: { $sum: 1 },
+              },
+            },
+            { $sort: { _id: 1 } },
+            {
+              $project: {
+                _id: 0,
+                month: '$_id',
+                revenue: { $round: ['$revenue', 2] },
+                orders: 1,
+              },
+            },
+          ],
+          ordersByStatus: [
+            {
+              $group: {
+                _id: normalizedGroupLabel('$status', 'sin estado'),
+                count: { $sum: 1 },
+              },
+            },
+            {
+              $project: {
+                _id: 0,
+                status: '$_id',
+                count: 1,
+              },
+            },
+            { $sort: { count: -1, status: 1 } },
+          ],
+          topProducts: [
+            {
+              $unwind: {
+                path: '$items',
+                preserveNullAndEmptyArrays: false,
+              },
+            },
+            {
+              $group: {
+                _id: normalizedGroupLabel('$items.nombre', 'producto sin nombre'),
+                quantity: {
+                  $sum: { $ifNull: ['$items.quantity', 0] },
+                },
+                revenue: {
+                  $sum: {
+                    $multiply: [
+                      { $ifNull: ['$items.quantity', 0] },
+                      { $ifNull: ['$items.precio', 0] },
+                    ],
+                  },
+                },
+              },
+            },
+            {
+              $match: {
+                quantity: { $gt: 0 },
+              },
+            },
+            {
+              $project: {
+                _id: 0,
+                name: '$_id',
+                quantity: 1,
+                revenue: { $round: ['$revenue', 2] },
+              },
+            },
+            { $sort: { quantity: -1, revenue: -1, name: 1 } },
+            { $limit: 5 },
+          ],
+          topProductsByMonth: [
+            {
+              $addFields: {
+                orderDate: { $ifNull: ['$createdAt', '$updatedAt'] },
+              },
+            },
+            {
+              $match: {
+                orderDate: { $type: 'date' },
+              },
+            },
+            {
+              $unwind: {
+                path: '$items',
+                preserveNullAndEmptyArrays: false,
+              },
+            },
+            {
+              $group: {
+                _id: {
+                  month: {
+                    $dateToString: {
+                      format: '%Y-%m',
+                      date: '$orderDate',
+                    },
+                  },
+                  name: normalizedGroupLabel('$items.nombre', 'producto sin nombre'),
+                },
+                quantity: {
+                  $sum: { $ifNull: ['$items.quantity', 0] },
+                },
+                revenue: {
+                  $sum: {
+                    $multiply: [
+                      { $ifNull: ['$items.quantity', 0] },
+                      { $ifNull: ['$items.precio', 0] },
+                    ],
+                  },
+                },
+              },
+            },
+            {
+              $match: {
+                quantity: { $gt: 0 },
+              },
+            },
+            { $sort: { '_id.month': 1, quantity: -1, revenue: -1, '_id.name': 1 } },
+            {
+              $group: {
+                _id: '$_id.month',
+                topProduct: {
+                  $first: {
+                    name: '$_id.name',
+                    quantity: '$quantity',
+                    revenue: { $round: ['$revenue', 2] },
+                  },
+                },
+              },
+            },
+            {
+              $project: {
+                _id: 0,
+                month: '$_id',
+                name: '$topProduct.name',
+                quantity: '$topProduct.quantity',
+                revenue: '$topProduct.revenue',
+              },
+            },
+            { $sort: { month: 1 } },
+          ],
+          paymentMethods: [
+            {
+              $group: {
+                _id: normalizedGroupLabel('$payment.method', 'sin metodo'),
+                count: { $sum: 1 },
+              },
+            },
+            {
+              $project: {
+                _id: 0,
+                method: '$_id',
+                count: 1,
+              },
+            },
+            { $sort: { count: -1, method: 1 } },
+          ],
+          ordersByCountry: [
+            {
+              $group: {
+                _id: normalizedGroupLabel('$shipping.pais', 'sin pais'),
+                orders: { $sum: 1 },
+                revenue: {
+                  $sum: { $ifNull: ['$total', 0] },
+                },
+              },
+            },
+            {
+              $project: {
+                _id: 0,
+                country: '$_id',
+                orders: 1,
+                revenue: { $round: ['$revenue', 2] },
+              },
+            },
+            { $sort: { orders: -1, revenue: -1, country: 1 } },
+            { $limit: 10 },
+          ],
+          ordersByProvince: [
+            {
+              $group: {
+                _id: normalizedGroupLabel('$shipping.provincia', 'sin provincia'),
+                orders: { $sum: 1 },
+                revenue: {
+                  $sum: { $ifNull: ['$total', 0] },
+                },
+              },
+            },
+            {
+              $project: {
+                _id: 0,
+                province: '$_id',
+                orders: 1,
+                revenue: { $round: ['$revenue', 2] },
+              },
+            },
+            { $sort: { orders: -1, revenue: -1, province: 1 } },
+            { $limit: 10 },
+          ],
+        },
+      },
+    ]);
+
+    const summary = stats?.summary?.[0] || {
+      totalRevenue: 0,
+      totalOrders: 0,
+      averageTicket: 0,
+      uniqueCustomers: 0,
+      totalProductsSold: 0,
+    };
+
+    return res.json({
+      summary,
+      salesByMonth: stats?.salesByMonth || [],
+      ordersByStatus: stats?.ordersByStatus || [],
+      topProducts: stats?.topProducts || [],
+      topProductsByMonth: stats?.topProductsByMonth || [],
+      paymentMethods: stats?.paymentMethods || [],
+      ordersByCountry: stats?.ordersByCountry || [],
+      ordersByProvince: stats?.ordersByProvince || [],
+    });
+  } catch (error) {
+    return next(error);
   }
 });
 

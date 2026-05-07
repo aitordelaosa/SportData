@@ -875,7 +875,7 @@ function renderUsers(users = []) {
           const nameSpan = document.createElement('span');
           nameSpan.textContent = product.nombre || 'Producto';
           const arrowSpan = document.createElement('span');
-          arrowSpan.textContent = '→';
+          arrowSpan.textContent = '->';
           button.appendChild(nameSpan);
           button.appendChild(arrowSpan);
           button.addEventListener('click', () => {
@@ -1093,7 +1093,7 @@ function renderUsers(users = []) {
   const sport = (getURLParam('sport', 'running') || 'running').toLowerCase();
   const friendlyNames = {
     running: 'Running',
-    montaña: 'Montaña',
+    montana: 'Montaña',
     futbol: 'Fútbol',
     ciclismo: 'Ciclismo',
     baloncesto: 'Baloncesto',
@@ -2331,6 +2331,7 @@ function renderUsers(users = []) {
   const usersSection = $('#usersSection');
   const createProductSection = $('#createProductSection');
   const manageProductsSection = $('#manageProductsSection');
+  const analyticsSection = $('#analyticsSection');
   const session = getSession();
 
   if (!tabsSection || !tabsContainer) return;
@@ -2338,7 +2339,7 @@ function renderUsers(users = []) {
   function setActiveTab(tabName) {
     const tabButtons = tabsContainer.querySelectorAll('[data-admin-tab]');
     const availableTabs = Array.from(tabButtons).map((button) => button.dataset.adminTab);
-    const allowedTabs = ['my-profile', 'users', 'create-product', 'manage-products'];
+    const allowedTabs = ['my-profile', 'users', 'create-product', 'manage-products', 'analytics'];
     const defaultTab = availableTabs.includes('my-profile') ? 'my-profile' : 'users';
     let safeTab = allowedTabs.includes(tabName) ? tabName : defaultTab;
     if (!availableTabs.includes(safeTab)) {
@@ -2363,7 +2364,13 @@ function renderUsers(users = []) {
     if (manageProductsSection) {
       manageProductsSection.hidden = safeTab !== 'manage-products';
     }
+    if (analyticsSection) {
+      analyticsSection.hidden = safeTab !== 'analytics';
+    }
     sessionStorage.setItem(ADMIN_TAB_SESSION_KEY, safeTab);
+    document.dispatchEvent(new CustomEvent('sd:admin-tab-change', {
+      detail: { tab: safeTab },
+    }));
   }
 
   if (!session || session.rol !== 'admin') {
@@ -2380,6 +2387,9 @@ function renderUsers(users = []) {
     if (manageProductsSection) {
       manageProductsSection.hidden = true;
     }
+    if (analyticsSection) {
+      analyticsSection.hidden = true;
+    }
     return;
   }
 
@@ -2394,6 +2404,1035 @@ function renderUsers(users = []) {
   });
 })();
 
+(function initAdminAnalytics() {
+  const section = $('#analyticsSection');
+  if (!section) return;
+
+  const session = getSession();
+  if (!session || session.rol !== 'admin') {
+    section.hidden = true;
+    return;
+  }
+
+  const messageEl = $('#analyticsMessage');
+  const emptyEl = $('#analyticsEmpty');
+  const gridEl = $('#analyticsGrid');
+  const zoneTitleEl = $('#ordersByZoneTitle');
+  const zoneTicketTitleEl = $('#zoneTicketTitle');
+
+  const kpiTotalRevenueEl = $('#kpiTotalRevenue');
+  const kpiTotalOrdersEl = $('#kpiTotalOrders');
+  const kpiAverageTicketEl = $('#kpiAverageTicket');
+  const kpiUniqueCustomersEl = $('#kpiUniqueCustomers');
+  const kpiProductsSoldEl = $('#kpiProductsSold');
+
+  const salesByMonthCanvas = $('#salesByMonthChart');
+  const ordersByStatusCanvas = $('#ordersByStatusChart');
+  const averageTicketCanvas = $('#averageTicketChart');
+  const topProductsCanvas = $('#topProductsChart');
+  const topProductsByMonthCanvas = $('#topProductsByMonthChart');
+  const ordersByZoneCanvas = $('#ordersByZoneChart');
+  const zoneTicketCanvas = $('#zoneTicketChart');
+
+  const numberFormatter = new Intl.NumberFormat('es-ES');
+  const chartTextColor = '#d6dcec';
+  const chartSubtleTextColor = '#a7afc3';
+  const gridColor = 'rgba(167, 175, 195, 0.14)';
+  const borderColor = 'rgba(58, 63, 85, 0.65)';
+  const palette = ['#ff8a00', '#ffa73d', '#4db6ff', '#6fd6a5', '#9fa8ff', '#ff7f7f', '#f4e285', '#84dcc6'];
+
+  const charts = {
+    salesByMonth: null,
+    ordersByStatus: null,
+    averageTicket: null,
+    topProducts: null,
+    topProductsByMonth: null,
+    ordersByZone: null,
+    zoneTicket: null,
+  };
+
+  let hasLoaded = false;
+  let isLoading = false;
+
+  function toSafeNumber(value) {
+    const numeric = Number(value);
+    return Number.isFinite(numeric) ? numeric : 0;
+  }
+
+  function formatCount(value) {
+    return numberFormatter.format(toSafeNumber(value));
+  }
+
+  function toLabel(value, fallback = 'Sin datos') {
+    const normalized = String(value || '').trim();
+    if (!normalized) return fallback;
+    return normalized
+      .replace(/[_-]+/g, ' ')
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((chunk) => chunk.charAt(0).toUpperCase() + chunk.slice(1))
+      .join(' ');
+  }
+
+  function toStatusLabel(status) {
+    const map = {
+      created: 'Creado',
+      paid: 'Pagado',
+      shipped: 'Enviado',
+      delivered: 'Entregado',
+      cancelled: 'Cancelado',
+      pending: 'Pendiente',
+      refunded: 'Reembolsado',
+      processing: 'Procesando',
+      failed: 'Fallido',
+      completed: 'Completado',
+      'sin estado': 'Sin estado',
+    };
+    const key = String(status || '').trim().toLowerCase();
+    return map[key] || toLabel(key, 'Sin estado');
+  }
+
+  function formatMonthLabel(monthKey) {
+    const normalized = String(monthKey || '').trim();
+    const match = /^(\d{4})-(\d{2})$/.exec(normalized);
+    if (!match) return normalized || '-';
+    const year = Number.parseInt(match[1], 10);
+    const month = Number.parseInt(match[2], 10);
+    if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) {
+      return normalized;
+    }
+    const date = new Date(Date.UTC(year, month - 1, 1));
+    return date.toLocaleDateString('es-ES', {
+      month: 'short',
+      year: 'numeric',
+      timeZone: 'UTC',
+    }).replace('.', '');
+  }
+
+  function truncateLabel(label, max = 24) {
+    const text = String(label || '');
+    if (text.length <= max) return text;
+    return `${text.slice(0, Math.max(8, max - 1))}...`;
+  }
+
+  function seriesColors(size = 1) {
+    const total = Math.max(1, Number.parseInt(size, 10) || 1);
+    return Array.from({ length: total }, (_, index) => palette[index % palette.length]);
+  }
+
+  function currencyTick(value) {
+    const numeric = toSafeNumber(value);
+    if (numeric >= 1000000) return `${(numeric / 1000000).toFixed(1)}M \u20AC`;
+    if (numeric >= 1000) return `${Math.round(numeric / 1000)}k \u20AC`;
+    return `${Math.round(numeric)} \u20AC`;
+  }
+
+  function countTick(value) {
+    const numeric = toSafeNumber(value);
+    if (numeric >= 1000000) return `${(numeric / 1000000).toFixed(1)}M`;
+    if (numeric >= 1000) return `${Math.round(numeric / 1000)}k`;
+    return `${Math.round(numeric)}`;
+  }
+
+  function setMessage(text) {
+    if (messageEl) {
+      messageEl.textContent = text || '';
+    }
+  }
+
+  function setEmptyState(text, hasError = false) {
+    if (!emptyEl) return;
+    if (!text) {
+      emptyEl.hidden = true;
+      emptyEl.classList.remove('analytics-empty--error');
+      emptyEl.textContent = '';
+      return;
+    }
+    emptyEl.hidden = false;
+    emptyEl.classList.toggle('analytics-empty--error', Boolean(hasError));
+    emptyEl.textContent = text;
+  }
+
+  function setKpiValue(element, text) {
+    if (!element) return;
+    element.textContent = text || '-';
+  }
+
+  function resetKpis() {
+    setKpiValue(kpiTotalRevenueEl, formatCurrency(0));
+    setKpiValue(kpiTotalOrdersEl, formatCount(0));
+    setKpiValue(kpiAverageTicketEl, formatCurrency(0));
+    setKpiValue(kpiUniqueCustomersEl, formatCount(0));
+    setKpiValue(kpiProductsSoldEl, formatCount(0));
+  }
+
+  function applySummary(summary = {}) {
+    setKpiValue(kpiTotalRevenueEl, formatCurrency(toSafeNumber(summary.totalRevenue)));
+    setKpiValue(kpiTotalOrdersEl, formatCount(summary.totalOrders));
+    setKpiValue(kpiAverageTicketEl, formatCurrency(toSafeNumber(summary.averageTicket)));
+    setKpiValue(kpiUniqueCustomersEl, formatCount(summary.uniqueCustomers));
+    setKpiValue(kpiProductsSoldEl, formatCount(summary.totalProductsSold));
+  }
+
+  function createVerticalGradient(canvas, topColor, bottomColor) {
+    const context = canvas?.getContext?.('2d');
+    if (!context || !canvas) return topColor;
+    const gradient = context.createLinearGradient(0, 0, 0, canvas.height || 260);
+    gradient.addColorStop(0, topColor);
+    gradient.addColorStop(1, bottomColor);
+    return gradient;
+  }
+
+  function createHorizontalGradient(canvas, leftColor, rightColor) {
+    const context = canvas?.getContext?.('2d');
+    if (!context || !canvas) return leftColor;
+    const gradient = context.createLinearGradient(0, 0, canvas.width || 360, 0);
+    gradient.addColorStop(0, leftColor);
+    gradient.addColorStop(1, rightColor);
+    return gradient;
+  }
+
+  function buildMonthlyRows(items = []) {
+    const source = Array.isArray(items) && items.length
+      ? items
+      : [{ month: '-', revenue: 0, orders: 0 }];
+
+    return source.map((entry) => {
+      const revenue = Math.max(0, toSafeNumber(entry.revenue));
+      const orders = Math.max(0, toSafeNumber(entry.orders));
+      return {
+        label: formatMonthLabel(entry.month),
+        revenue,
+        orders,
+        averageTicket: orders > 0 ? revenue / orders : 0,
+      };
+    });
+  }
+
+  function buildZoneRows(items = [], zoneType = 'country', limit = 10, sortBy = 'revenue') {
+    const key = zoneType === 'country' ? 'country' : 'province';
+    const emptyLabel = zoneType === 'country' ? 'Sin país' : 'Sin provincia';
+
+    const rows = (Array.isArray(items) ? items : [])
+      .map((entry) => ({
+        label: toLabel(entry?.[key], emptyLabel),
+        orders: Math.max(0, toSafeNumber(entry?.orders)),
+        revenue: Math.max(0, toSafeNumber(entry?.revenue)),
+      }))
+      .filter((entry) => entry.orders > 0 || entry.revenue > 0);
+
+    if (!rows.length) {
+      return [{ label: emptyLabel, orders: 0, revenue: 0 }];
+    }
+
+    rows.sort((a, b) => {
+      if (sortBy === 'orders' && b.orders !== a.orders) {
+        return b.orders - a.orders;
+      }
+      if (sortBy === 'ticket') {
+        const ticketA = a.orders > 0 ? a.revenue / a.orders : 0;
+        const ticketB = b.orders > 0 ? b.revenue / b.orders : 0;
+        if (ticketB !== ticketA) {
+          return ticketB - ticketA;
+        }
+      }
+      if (b.revenue !== a.revenue) {
+        return b.revenue - a.revenue;
+      }
+      if (b.orders !== a.orders) {
+        return b.orders - a.orders;
+      }
+      return a.label.localeCompare(b.label, 'es');
+    });
+
+    return rows.slice(0, Math.max(1, limit));
+  }
+
+  function buildTopProductsByMonthRows(items = []) {
+    const source = Array.isArray(items) ? items : [];
+    const rows = source
+      .map((entry) => {
+        const monthKey = String(entry?.month || '').trim();
+        const productsFromList = Array.isArray(entry?.products)
+          ? entry.products
+            .map((product) => ({
+              name: toLabel(product?.name, 'Producto sin nombre'),
+              quantity: Math.max(0, toSafeNumber(product?.quantity)),
+              revenue: Math.max(0, toSafeNumber(product?.revenue)),
+            }))
+            .filter((product) => product.quantity > 0)
+          : [];
+
+        const productFromFlatShape = {
+          name: toLabel(entry?.name, 'Producto sin nombre'),
+          quantity: Math.max(0, toSafeNumber(entry?.quantity)),
+          revenue: Math.max(0, toSafeNumber(entry?.revenue)),
+        };
+
+        const products = productsFromList.length
+          ? productsFromList
+          : (productFromFlatShape.quantity > 0 ? [productFromFlatShape] : []);
+        const topProduct = products.length ? products[0] : null;
+
+        return {
+          monthKey: monthKey || '-',
+          label: formatMonthLabel(monthKey || '-'),
+          topProduct,
+        };
+      })
+      .filter((entry) => entry.topProduct);
+
+    if (!rows.length) {
+      return [{
+        monthKey: '-',
+        label: '-',
+        topProduct: {
+          name: 'Sin ventas',
+          quantity: 0,
+          revenue: 0,
+        },
+      }];
+    }
+
+    rows.sort((a, b) => a.monthKey.localeCompare(b.monthKey, 'es'));
+    return rows;
+  }
+
+  function destroyChart(name) {
+    const chart = charts[name];
+    if (chart && typeof chart.destroy === 'function') {
+      chart.destroy();
+    }
+    charts[name] = null;
+  }
+
+  function destroyAllCharts() {
+    Object.keys(charts).forEach((name) => destroyChart(name));
+  }
+
+  function resizeCharts() {
+    Object.values(charts).forEach((chart) => {
+      if (chart && typeof chart.resize === 'function') {
+        chart.resize();
+      }
+    });
+  }
+
+  function canRenderCharts() {
+    return typeof window.Chart === 'function';
+  }
+
+  function buildChartOptions() {
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: {
+        duration: 650,
+        easing: 'easeOutQuart',
+      },
+      plugins: {
+        legend: {
+          labels: {
+            color: chartTextColor,
+            boxWidth: 12,
+            padding: 14,
+            font: {
+              size: 11,
+              weight: '600',
+            },
+          },
+        },
+      },
+    };
+  }
+
+  function renderSalesByMonth(items = []) {
+    if (!salesByMonthCanvas) return;
+
+    const monthly = buildMonthlyRows(items);
+    const labels = monthly.map((entry) => entry.label);
+    const revenues = monthly.map((entry) => entry.revenue);
+    const orders = monthly.map((entry) => entry.orders);
+
+    destroyChart('salesByMonth');
+    charts.salesByMonth = new window.Chart(salesByMonthCanvas, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Ingresos',
+            data: revenues,
+            tension: 0.34,
+            borderWidth: 3,
+            pointRadius: 2.6,
+            pointHoverRadius: 5,
+            borderColor: '#ff8a00',
+            backgroundColor: createVerticalGradient(salesByMonthCanvas, 'rgba(255, 138, 0, 0.5)', 'rgba(255, 138, 0, 0.06)'),
+            fill: true,
+            yAxisID: 'y',
+          },
+          {
+            type: 'bar',
+            label: 'Pedidos',
+            data: orders,
+            backgroundColor: 'rgba(77, 182, 255, 0.32)',
+            borderColor: 'rgba(77, 182, 255, 0.78)',
+            borderWidth: 1,
+            borderRadius: 9,
+            yAxisID: 'y1',
+          },
+        ],
+      },
+      options: {
+        ...buildChartOptions(),
+        interaction: {
+          mode: 'index',
+          intersect: false,
+        },
+        plugins: {
+          ...buildChartOptions().plugins,
+          tooltip: {
+            backgroundColor: 'rgba(14, 17, 30, 0.96)',
+            borderColor: 'rgba(255, 138, 0, 0.45)',
+            borderWidth: 1,
+            padding: 10,
+            callbacks: {
+              label(context) {
+                const value = toSafeNumber(context.raw);
+                if (context.dataset.yAxisID === 'y1') {
+                  return `${context.dataset.label}: ${formatCount(value)}`;
+                }
+                return `${context.dataset.label}: ${formatCurrency(value)}`;
+              },
+            },
+          },
+        },
+        scales: {
+          x: {
+            grid: { color: gridColor },
+            border: { color: borderColor },
+            ticks: { color: chartSubtleTextColor, maxRotation: 0 },
+          },
+          y: {
+            beginAtZero: true,
+            grid: { color: gridColor },
+            border: { color: borderColor },
+            ticks: {
+              color: chartSubtleTextColor,
+              callback: currencyTick,
+            },
+          },
+          y1: {
+            position: 'right',
+            beginAtZero: true,
+            grid: { drawOnChartArea: false },
+            border: { color: borderColor },
+            ticks: {
+              color: chartSubtleTextColor,
+              callback: countTick,
+            },
+          },
+        },
+      },
+    });
+  }
+
+  function renderOrdersByStatus(items = []) {
+    if (!ordersByStatusCanvas) return;
+
+    const source = Array.isArray(items) && items.length
+      ? items
+      : [{ status: 'sin estado', count: 1 }];
+    const labels = source.map((entry) => toStatusLabel(entry.status));
+    const values = source.map((entry) => Math.max(0, toSafeNumber(entry.count)));
+
+    destroyChart('ordersByStatus');
+    charts.ordersByStatus = new window.Chart(ordersByStatusCanvas, {
+      type: 'doughnut',
+      data: {
+        labels,
+        datasets: [
+          {
+            data: values,
+            backgroundColor: seriesColors(labels.length),
+            borderColor: 'rgba(16, 19, 31, 0.9)',
+            borderWidth: 2,
+            hoverOffset: 8,
+          },
+        ],
+      },
+      options: {
+        ...buildChartOptions(),
+        cutout: '62%',
+        plugins: {
+          ...buildChartOptions().plugins,
+          tooltip: {
+            backgroundColor: 'rgba(14, 17, 30, 0.96)',
+            borderColor: 'rgba(255, 138, 0, 0.45)',
+            borderWidth: 1,
+            callbacks: {
+              label(context) {
+                const value = toSafeNumber(context.raw);
+                const total = values.reduce((sum, current) => sum + current, 0);
+                const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                return `${context.label}: ${formatCount(value)} (${percentage}%)`;
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  function renderAverageTicketByMonth(items = []) {
+    if (!averageTicketCanvas) return;
+
+    const monthly = buildMonthlyRows(items);
+    const labels = monthly.map((entry) => entry.label);
+    const averageTicket = monthly.map((entry) => entry.averageTicket);
+    const orders = monthly.map((entry) => entry.orders);
+
+    destroyChart('averageTicket');
+    charts.averageTicket = new window.Chart(averageTicketCanvas, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Ticket medio',
+            data: averageTicket,
+            borderColor: '#4db6ff',
+            backgroundColor: createVerticalGradient(averageTicketCanvas, 'rgba(77, 182, 255, 0.45)', 'rgba(77, 182, 255, 0.05)'),
+            fill: true,
+            tension: 0.32,
+            borderWidth: 2.6,
+            pointRadius: 2.5,
+            pointHoverRadius: 5,
+            yAxisID: 'y',
+          },
+          {
+            type: 'bar',
+            label: 'Pedidos',
+            data: orders,
+            backgroundColor: 'rgba(159, 168, 255, 0.3)',
+            borderColor: 'rgba(159, 168, 255, 0.72)',
+            borderWidth: 1,
+            borderRadius: 8,
+            yAxisID: 'y1',
+          },
+        ],
+      },
+      options: {
+        ...buildChartOptions(),
+        interaction: {
+          mode: 'index',
+          intersect: false,
+        },
+        plugins: {
+          ...buildChartOptions().plugins,
+          tooltip: {
+            backgroundColor: 'rgba(14, 17, 30, 0.96)',
+            borderColor: 'rgba(77, 182, 255, 0.45)',
+            borderWidth: 1,
+            callbacks: {
+              label(context) {
+                const value = toSafeNumber(context.raw);
+                if (context.dataset.yAxisID === 'y1') {
+                  return `${context.dataset.label}: ${formatCount(value)}`;
+                }
+                return `${context.dataset.label}: ${formatCurrency(value)}`;
+              },
+            },
+          },
+        },
+        scales: {
+          x: {
+            grid: { color: gridColor },
+            border: { color: borderColor },
+            ticks: { color: chartSubtleTextColor, maxRotation: 0 },
+          },
+          y: {
+            beginAtZero: true,
+            grid: { color: gridColor },
+            border: { color: borderColor },
+            ticks: {
+              color: chartSubtleTextColor,
+              callback: currencyTick,
+            },
+          },
+          y1: {
+            position: 'right',
+            beginAtZero: true,
+            grid: { drawOnChartArea: false },
+            border: { color: borderColor },
+            ticks: {
+              color: chartSubtleTextColor,
+              callback: countTick,
+            },
+          },
+        },
+      },
+    });
+  }
+
+  function renderTopProducts(items = []) {
+    if (!topProductsCanvas) return;
+
+    const source = Array.isArray(items) && items.length
+      ? items
+      : [{ name: 'Sin ventas', quantity: 0, revenue: 0 }];
+    const labels = source.map((entry) => toLabel(entry.name, 'Producto sin nombre'));
+    const quantities = source.map((entry) => Math.max(0, toSafeNumber(entry.quantity)));
+    const revenues = source.map((entry) => Math.max(0, toSafeNumber(entry.revenue)));
+
+    destroyChart('topProducts');
+    charts.topProducts = new window.Chart(topProductsCanvas, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Unidades vendidas',
+            data: quantities,
+            backgroundColor: createHorizontalGradient(topProductsCanvas, 'rgba(111, 214, 165, 0.8)', 'rgba(111, 214, 165, 0.36)'),
+            borderColor: '#6fd6a5',
+            borderWidth: 1,
+            borderRadius: 10,
+            borderSkipped: false,
+            revenueData: revenues,
+          },
+        ],
+      },
+      options: {
+        ...buildChartOptions(),
+        indexAxis: 'y',
+        plugins: {
+          ...buildChartOptions().plugins,
+          legend: {
+            display: false,
+          },
+          tooltip: {
+            backgroundColor: 'rgba(14, 17, 30, 0.96)',
+            borderColor: 'rgba(111, 214, 165, 0.45)',
+            borderWidth: 1,
+            callbacks: {
+              label(context) {
+                const quantity = toSafeNumber(context.raw);
+                const revenue = toSafeNumber(context.dataset.revenueData?.[context.dataIndex]);
+                return `Vendidas: ${formatCount(quantity)} | Ingresos: ${formatCurrency(revenue)}`;
+              },
+            },
+          },
+        },
+        scales: {
+          x: {
+            beginAtZero: true,
+            grid: { color: gridColor },
+            border: { color: borderColor },
+            ticks: {
+              color: chartSubtleTextColor,
+              callback: countTick,
+            },
+          },
+          y: {
+            grid: { color: 'rgba(167, 175, 195, 0.07)' },
+            border: { color: borderColor },
+            ticks: {
+              color: chartSubtleTextColor,
+              callback: (value, index) => truncateLabel(labels[index] || '', 30),
+            },
+          },
+        },
+      },
+    });
+  }
+
+  function renderTopProductsByMonth(items = []) {
+    if (!topProductsByMonthCanvas) return;
+
+    const monthlyRows = buildTopProductsByMonthRows(items);
+    const labels = monthlyRows.map((entry) => entry.label);
+    const topNames = monthlyRows.map((entry) => toLabel(entry.topProduct?.name, 'Sin ventas'));
+    const topQuantities = monthlyRows.map((entry) => Math.max(0, toSafeNumber(entry.topProduct?.quantity)));
+    const topRevenue = monthlyRows.map((entry) => Math.max(0, toSafeNumber(entry.topProduct?.revenue)));
+
+    destroyChart('topProductsByMonth');
+    charts.topProductsByMonth = new window.Chart(topProductsByMonthCanvas, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Unidades del producto top',
+            data: topQuantities,
+            backgroundColor: createVerticalGradient(topProductsByMonthCanvas, 'rgba(159, 168, 255, 0.65)', 'rgba(159, 168, 255, 0.28)'),
+            borderColor: '#9fa8ff',
+            borderWidth: 1,
+            borderRadius: 10,
+            borderSkipped: false,
+            productNames: topNames,
+            revenueData: topRevenue,
+          },
+        ],
+      },
+      options: {
+        ...buildChartOptions(),
+        plugins: {
+          ...buildChartOptions().plugins,
+          legend: {
+            display: false,
+          },
+          tooltip: {
+            backgroundColor: 'rgba(14, 17, 30, 0.96)',
+            borderColor: 'rgba(159, 168, 255, 0.45)',
+            borderWidth: 1,
+            callbacks: {
+              title(contexts) {
+                const index = contexts?.[0]?.dataIndex ?? 0;
+                const month = labels[index] || '-';
+                const productName = topNames[index] || 'Sin ventas';
+                return `${month} - ${productName}`;
+              },
+              label(context) {
+                const quantity = toSafeNumber(context.raw);
+                const revenue = toSafeNumber(context.dataset.revenueData?.[context.dataIndex]);
+                return `Compras: ${formatCount(quantity)} uds | Ingresos: ${formatCurrency(revenue)}`;
+              },
+            },
+          },
+        },
+        scales: {
+          x: {
+            grid: { color: gridColor },
+            border: { color: borderColor },
+            ticks: {
+              color: chartSubtleTextColor,
+              callback: (value, index) => {
+                const monthLabel = labels[index] || '-';
+                const productLabel = truncateLabel(topNames[index] || '', 18);
+                return [monthLabel, productLabel];
+              },
+            },
+          },
+          y: {
+            beginAtZero: true,
+            grid: { color: gridColor },
+            border: { color: borderColor },
+            ticks: {
+              color: chartSubtleTextColor,
+              callback: countTick,
+            },
+          },
+        },
+      },
+    });
+  }
+
+  function renderOrdersByZone(items = [], zoneType = 'country') {
+    if (!ordersByZoneCanvas) return;
+
+    const isCountry = zoneType === 'country';
+    if (zoneTitleEl) {
+      zoneTitleEl.textContent = isCountry
+        ? 'Ranking por país: pedidos e ingresos'
+        : 'Ranking por provincia: pedidos e ingresos';
+    }
+
+    const rows = buildZoneRows(items, zoneType, 10, 'revenue');
+    const labels = rows.map((entry) => entry.label);
+    const orders = rows.map((entry) => entry.orders);
+    const revenues = rows.map((entry) => entry.revenue);
+
+    destroyChart('ordersByZone');
+    charts.ordersByZone = new window.Chart(ordersByZoneCanvas, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Pedidos',
+            data: orders,
+            xAxisID: 'x',
+            backgroundColor: 'rgba(159, 168, 255, 0.52)',
+            borderColor: '#a7b0ff',
+            borderWidth: 1,
+            borderRadius: 10,
+            borderSkipped: false,
+          },
+          {
+            label: 'Ingresos',
+            data: revenues,
+            xAxisID: 'x1',
+            backgroundColor: 'rgba(255, 138, 0, 0.45)',
+            borderColor: '#ff8a00',
+            borderWidth: 1,
+            borderRadius: 10,
+            borderSkipped: false,
+          },
+        ],
+      },
+      options: {
+        ...buildChartOptions(),
+        indexAxis: 'y',
+        interaction: {
+          mode: 'index',
+          intersect: false,
+        },
+        plugins: {
+          ...buildChartOptions().plugins,
+          legend: {
+            ...buildChartOptions().plugins.legend,
+            position: 'bottom',
+          },
+          tooltip: {
+            backgroundColor: 'rgba(14, 17, 30, 0.96)',
+            borderColor: 'rgba(255, 138, 0, 0.45)',
+            borderWidth: 1,
+            callbacks: {
+              label(context) {
+                const value = toSafeNumber(context.raw);
+                if (context.dataset.label === 'Ingresos') {
+                  return `${context.dataset.label}: ${formatCurrency(value)}`;
+                }
+                return `${context.dataset.label}: ${formatCount(value)}`;
+              },
+            },
+          },
+        },
+        scales: {
+          y: {
+            grid: { color: 'rgba(167, 175, 195, 0.08)' },
+            border: { color: borderColor },
+            ticks: {
+              color: chartSubtleTextColor,
+              callback: (value, index) => truncateLabel(labels[index] || '', 28),
+            },
+          },
+          x: {
+            beginAtZero: true,
+            position: 'bottom',
+            grid: { color: gridColor },
+            border: { color: borderColor },
+            ticks: {
+              color: chartSubtleTextColor,
+              callback: countTick,
+            },
+            title: {
+              display: true,
+              color: chartSubtleTextColor,
+              text: 'Pedidos',
+            },
+          },
+          x1: {
+            beginAtZero: true,
+            grid: { drawOnChartArea: false },
+            position: 'top',
+            border: { color: borderColor },
+            ticks: {
+              color: chartSubtleTextColor,
+              callback: currencyTick,
+            },
+            title: {
+              display: true,
+              color: chartSubtleTextColor,
+              text: 'Ingresos',
+            },
+          },
+        },
+      },
+    });
+  }
+
+  function renderZoneTicket(provinceItems = [], countryItems = []) {
+    if (!zoneTicketCanvas) return;
+
+    const hasProvinceData = Array.isArray(provinceItems) && provinceItems.length > 0;
+    if (zoneTicketTitleEl) {
+      zoneTicketTitleEl.textContent = hasProvinceData
+        ? 'Ticket medio por provincia'
+        : 'Ticket medio por país';
+    }
+
+    const zoneRows = hasProvinceData
+      ? buildZoneRows(provinceItems, 'province', 8, 'ticket')
+      : buildZoneRows(countryItems, 'country', 8, 'ticket');
+
+    const rows = zoneRows.map((entry) => ({
+      ...entry,
+      averageTicket: entry.orders > 0 ? entry.revenue / entry.orders : 0,
+    }));
+    const labels = rows.map((entry) => entry.label);
+    const averageTickets = rows.map((entry) => entry.averageTicket);
+
+    destroyChart('zoneTicket');
+    charts.zoneTicket = new window.Chart(zoneTicketCanvas, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Ticket medio',
+            data: averageTickets,
+            backgroundColor: createHorizontalGradient(zoneTicketCanvas, 'rgba(255, 167, 61, 0.88)', 'rgba(255, 138, 0, 0.32)'),
+            borderColor: '#ffa73d',
+            borderWidth: 1,
+            borderRadius: 10,
+            borderSkipped: false,
+            sourceRows: rows,
+          },
+        ],
+      },
+      options: {
+        ...buildChartOptions(),
+        indexAxis: 'y',
+        plugins: {
+          ...buildChartOptions().plugins,
+          legend: {
+            display: false,
+          },
+          tooltip: {
+            backgroundColor: 'rgba(14, 17, 30, 0.96)',
+            borderColor: 'rgba(255, 167, 61, 0.45)',
+            borderWidth: 1,
+            callbacks: {
+              label(context) {
+                const value = toSafeNumber(context.raw);
+                return `Ticket medio: ${formatCurrency(value)}`;
+              },
+              afterLabel(context) {
+                const row = context.dataset.sourceRows?.[context.dataIndex];
+                if (!row) return '';
+                return `Pedidos: ${formatCount(row.orders)} | Ingresos: ${formatCurrency(row.revenue)}`;
+              },
+            },
+          },
+        },
+        scales: {
+          x: {
+            beginAtZero: true,
+            grid: { color: gridColor },
+            border: { color: borderColor },
+            ticks: {
+              color: chartSubtleTextColor,
+              callback: currencyTick,
+            },
+          },
+          y: {
+            grid: { color: 'rgba(167, 175, 195, 0.08)' },
+            border: { color: borderColor },
+            ticks: {
+              color: chartSubtleTextColor,
+              callback: (value, index) => truncateLabel(labels[index] || '', 24),
+            },
+          },
+        },
+      },
+    });
+  }
+
+  function normalizeStatsResponse(payload = {}) {
+    return {
+      summary: payload?.summary || {},
+      salesByMonth: Array.isArray(payload?.salesByMonth) ? payload.salesByMonth : [],
+      ordersByStatus: Array.isArray(payload?.ordersByStatus) ? payload.ordersByStatus : [],
+      topProducts: Array.isArray(payload?.topProducts) ? payload.topProducts : [],
+      topProductsByMonth: Array.isArray(payload?.topProductsByMonth) ? payload.topProductsByMonth : [],
+      ordersByCountry: Array.isArray(payload?.ordersByCountry) ? payload.ordersByCountry : [],
+      ordersByProvince: Array.isArray(payload?.ordersByProvince) ? payload.ordersByProvince : [],
+    };
+  }
+
+  async function loadAnalytics(force = false) {
+    if (isLoading) return;
+    if (!force && hasLoaded) return;
+
+    isLoading = true;
+    setMessage('Cargando estadísticas...');
+    setEmptyState('');
+    if (gridEl) {
+      gridEl.hidden = false;
+    }
+
+    try {
+      const payload = await apiRequest('/admin/stats', { token: session.token });
+      const stats = normalizeStatsResponse(payload);
+      applySummary(stats.summary);
+      destroyAllCharts();
+
+      if (!canRenderCharts()) {
+        if (gridEl) {
+          gridEl.hidden = true;
+        }
+        setEmptyState('No se pudo cargar la librería de gráficas.', true);
+        setMessage('Chart.js no está disponible.');
+        return;
+      }
+
+      if (toSafeNumber(stats.summary.totalOrders) <= 0) {
+        if (gridEl) {
+          gridEl.hidden = true;
+        }
+        setEmptyState('Todavía no hay pedidos registrados. Cuando existan pedidos reales, aquí verás las gráficas.');
+        setMessage('Sin historial de pedidos para generar analítica.');
+        hasLoaded = true;
+        return;
+      }
+
+      if (gridEl) {
+        gridEl.hidden = false;
+      }
+      setEmptyState('');
+
+      renderSalesByMonth(stats.salesByMonth);
+      renderOrdersByStatus(stats.ordersByStatus);
+      renderAverageTicketByMonth(stats.salesByMonth);
+      renderTopProducts(stats.topProducts);
+      renderTopProductsByMonth(stats.topProductsByMonth);
+
+      const hasCountryData = stats.ordersByCountry.length > 0;
+      const zoneType = hasCountryData ? 'country' : 'province';
+      const zoneRows = hasCountryData ? stats.ordersByCountry : stats.ordersByProvince;
+      renderOrdersByZone(zoneRows, zoneType);
+      renderZoneTicket(stats.ordersByProvince, stats.ordersByCountry);
+
+      setMessage(`Última actualización: ${formatDateTime(new Date().toISOString())}`);
+      hasLoaded = true;
+      window.requestAnimationFrame(() => resizeCharts());
+    } catch (error) {
+      destroyAllCharts();
+      resetKpis();
+      if (gridEl) {
+        gridEl.hidden = true;
+      }
+      setEmptyState('No se pudieron cargar las estadísticas. Inténtalo de nuevo más tarde.', true);
+      setMessage(error.message || 'Error cargando estadísticas');
+    } finally {
+      isLoading = false;
+    }
+  }
+
+  document.addEventListener('sd:admin-tab-change', (event) => {
+    if (event.detail?.tab === 'analytics') {
+      if (hasLoaded) {
+        window.requestAnimationFrame(() => resizeCharts());
+        return;
+      }
+      loadAnalytics(true);
+    }
+  });
+
+  window.addEventListener('resize', debounce(() => {
+    if (!section.hidden && hasLoaded) {
+      resizeCharts();
+    }
+  }, 180));
+
+  resetKpis();
+  if (!section.hidden) {
+    loadAnalytics(true);
+  }
+})();
 (function initProductCreateForm() {
   const section = $('#createProductSection');
   const form = $('#productCreateForm');
@@ -2981,7 +4020,7 @@ function renderUsers(users = []) {
 
     renderProductsList(
       filtered,
-      usingFilters ? 'No hay productos que coincidan con la busqueda/filtros' : 'No hay productos registrados',
+      usingFilters ? 'No hay productos que coincidan con la búsqueda/filtros' : 'No hay productos registrados',
     );
 
     if (!products.length) {
@@ -2995,7 +4034,7 @@ function renderUsers(users = []) {
     }
 
     if (!filtered.length) {
-      setMessage('No hay productos que coincidan con la busqueda/filtros');
+      setMessage('No hay productos que coincidan con la búsqueda/filtros');
       return;
     }
 
@@ -3555,3 +4594,4 @@ function renderUsers(users = []) {
   fields.forEach(createRow);
   loadProfile();
 })();
+
