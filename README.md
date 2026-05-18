@@ -105,3 +105,111 @@ PostgreSQL productos | `postgres://sport4data:sport4data@127.0.0.1:5432/sport4da
 - Reanudar servicios: `docker compose start`
 - Bajar servicios: `docker compose down`
 - Bajar y borrar volumenes: `docker compose down -v`
+
+## Pruebas y cobertura
+
+SportData incluye una suite automatizada de backend con cobertura por servicio y un dashboard HTML consolidado. La ejecucion principal se lanza desde la raiz:
+
+```bash
+npm run test:coverage
+```
+
+El informe visual unificado se genera en:
+
+```text
+coverage-report/index.html
+```
+
+Resumen de la ultima ejecucion validada:
+
+Servicio | Statements | Branches | Functions | Lines
+--- | ---: | ---: | ---: | ---:
+`api-gateway` | 83.39% | 59.70% | 92.45% | 83.39%
+`microservicioUsuarios` | 72.10% | 41.02% | 78.26% | 72.46%
+`microservicioProductos` | 73.90% | 41.89% | N/A | 68.00%
+`microservicioPedidos` | 71.04% | 48.79% | 65.71% | 72.40%
+**GLOBAL backend** | **74.96%** | **47.17%** | **80.60%** | **75.38%**
+
+> En Python, `coverage.py` no expone cobertura de funciones; por eso `microservicioProductos` aparece como `N/A` en esa columna. El calculo global de funciones se hace con los servicios Node.js.
+
+Instalacion de dependencias de test:
+
+```bash
+npm install
+
+cd api-gateway
+npm install
+
+cd ../microservicioUsuarios
+npm install
+
+cd ../microservicioPedidos
+npm install
+
+cd ../microservicioProductos
+python -m venv .venv
+.venv\Scripts\python -m pip install -r requirements-test.txt
+```
+
+En Linux/macOS, usa `.venv/bin/python -m pip install -r requirements-test.txt` para el servicio de productos. Si quieres usar otro interprete Python, define `PYTHON` antes de ejecutar la cobertura global.
+
+Comandos utiles:
+
+```bash
+npm run test
+npm run test:coverage
+npm run coverage:summary
+npm run coverage:open
+npm run coverage:merge
+npm run coverage:publish
+```
+
+Estructura generada:
+
+```text
+coverage-report/
+  index.html
+  summary.json
+  services/
+    api-gateway/
+    microservicioUsuarios/
+    microservicioProductos/
+    microservicioPedidos/
+```
+
+Para que el informe sea accesible sin depender de una ruta local como `C:\Users\...`, genera una version publicable:
+
+```bash
+npm run test:coverage
+npm run coverage:publish
+```
+
+Esto copia el dashboard a:
+
+```text
+docs/coverage/index.html
+```
+
+Esa carpeta se puede subir al repositorio y publicar con GitHub Pages:
+
+1. Haz commit de `docs/`.
+2. En GitHub, entra en `Settings > Pages`.
+3. Selecciona `Deploy from a branch`.
+4. Usa la rama `main` y la carpeta `/docs`.
+5. La URL esperada sera:
+
+```text
+https://aitordelaosa.github.io/SportData/coverage/
+```
+
+Mientras Docker Compose este levantado, tambien puedes servir una copia estatica desde cualquier servidor web. La idea es que `coverage-report/` sea el resultado local de trabajo y `docs/coverage/` sea la version publicable para tribunal, tutor o companeros.
+
+Estrategia usada:
+
+- `api-gateway`: Jest + Supertest. Se mockean los clientes HTTP externos y se prueban health, 404, autenticacion, rutas de productos, usuarios y pedidos.
+- `microservicioUsuarios`: Jest + Supertest + `mongodb-memory-server`. MongoDB se levanta en memoria y se limpian colecciones entre tests.
+- `microservicioPedidos`: Jest + Supertest + `mongodb-memory-server`. MongoDB se levanta en memoria y las llamadas al servicio de productos/correo se mockean.
+- `microservicioProductos`: pytest + FastAPI TestClient + coverage.py. La configuracion de test usa SQLite en memoria mediante `PRODUCTS_DATABASE_URL=sqlite:///:memory:`.
+- El comando global copia los informes HTML individuales y crea `coverage-report/summary.json` y `coverage-report/index.html` con tarjetas, tabla comparativa, barras, archivos con menor cobertura y recomendaciones.
+
+Los informes temporales (`coverage/`, `htmlcov/`, `coverage-report/`, `.coverage`, `coverage.json`, `coverage.xml`) estan ignorados por git. La carpeta `docs/coverage/` es la copia publicable si quieres compartir el dashboard. Docker Compose no se modifica: los tests no dependen de las bases de datos reales ni requieren levantar los contenedores de produccion.

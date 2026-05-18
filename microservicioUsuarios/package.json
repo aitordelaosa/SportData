@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
+    "test": "jest --runInBand",
+    "test:coverage": "jest --coverage --runInBand",
     "lint": "echo \"No lint configured\"",
     "seed:users": "node src/config/bootstrapUsers.js"
   },
@@ -22,6 +24,9 @@
     "nodemailer": "^6.10.1"
   },
   "devDependencies": {
+    "jest": "^29.7.0",
+    "mongodb-memory-server": "^10.1.4",
+    "supertest": "^7.1.4",
     "nodemon": "^3.1.10"
   }
 }

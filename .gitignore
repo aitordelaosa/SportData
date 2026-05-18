@@ -19,6 +19,13 @@ pnpm-debug.log*
 dist/
 build/
 coverage/
+coverage-report/
+htmlcov/
+.coverage
+.coverage.*
+!.coveragerc
+coverage.json
+coverage.xml
 .nyc_output/
 *.tsbuildinfo
 
@@ -29,6 +36,7 @@ __pycache__/
 *.pyd
 .python-version
 .pytest_cache/
+pytest-cache-files-*/
 .mypy_cache/
 .ruff_cache/
 .venv/
@@ -39,6 +47,7 @@ env/
 *.pid
 tmp/
 temp/
+.tmp/
 
 # OS files
 .DS_Store
@@ -50,4 +59,3 @@ desktop.ini
 .idea/
 *.swp
 *.swo
-

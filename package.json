@@ -1,0 +1,15 @@
+{
+  "name": "sportdata",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Scripts globales de testing y cobertura para SportData.",
+  "scripts": {
+    "test": "npm run test:coverage",
+    "test:coverage": "node scripts/run-coverage.js",
+    "coverage:open": "node scripts/open-coverage.js",
+    "coverage:summary": "node scripts/coverage-summary.js",
+    "coverage:merge": "node scripts/merge-coverage.js",
+    "coverage:publish": "node scripts/publish-coverage.js"
+  },
+  "license": "ISC"
+}
