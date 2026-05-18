@@ -35,8 +35,23 @@ Carpeta | Descripcion
    docker compose ps
    ```
 5. Abre el frontend:
+   - `http://127.0.0.1:8080/html/index.html`
    - `http://127.0.0.1:8080`
    - `http://127.0.0.1:8080/html/cart.html`
+
+## Acceso rapido
+
+Pagina | Ruta
+--- | ---
+Frontend principal | `http://127.0.0.1:8080/html/index.html`
+Frontend raiz | `http://127.0.0.1:8080`
+Carrito | `http://127.0.0.1:8080/html/cart.html`
+API Gateway | `http://127.0.0.1:5000/api`
+Swagger Gateway | `http://127.0.0.1:5000/docs`
+Swagger Productos | `http://127.0.0.1:8002/docs`
+Informe de cobertura local | `coverage-report/index.html`
+Informe de cobertura publicable | `docs/coverage/index.html`
+Informe en GitHub Pages | `https://aitordelaosa.github.io/SportData/coverage/`
 
 ## Arranque manual (sin Docker)
 
@@ -88,7 +103,7 @@ Carpeta | Descripcion
 
 Servicio | URL / Conexion
 --- | ---
-Frontend | `http://127.0.0.1:8080`
+Frontend | `http://127.0.0.1:8080/html/index.html`
 API Gateway (base API) | `http://127.0.0.1:5000/api`
 Swagger Gateway | `http://127.0.0.1:5000/docs`
 Usuarios | `http://127.0.0.1:4001/api` (`/api/health` y `/health` para salud)

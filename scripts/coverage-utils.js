@@ -116,7 +116,11 @@ function copyDir(source, destination) {
     console.warn(`No se pudo limpiar ${destination}: ${error.message}`);
   }
   ensureDir(destination);
-  fs.cpSync(source, destination, { recursive: true, force: true });
+  fs.cpSync(source, destination, {
+    recursive: true,
+    force: true,
+    filter: (sourcePath) => path.basename(sourcePath) !== '.gitignore',
+  });
   return true;
 }
 

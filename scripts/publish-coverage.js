@@ -48,7 +48,11 @@ function writePagesIndex() {
 function main() {
   assertCoverageExists();
   cleanDir(targetDir);
-  fs.cpSync(sourceDir, targetDir, { recursive: true, force: true });
+  fs.cpSync(sourceDir, targetDir, {
+    recursive: true,
+    force: true,
+    filter: (sourcePath) => path.basename(sourcePath) !== '.gitignore',
+  });
   fs.writeFileSync(path.join(publicDir, '.nojekyll'), '');
   writePagesIndex();
 
