@@ -1,0 +1,658 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cobertura de tests - SportData</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7f9;
+      --surface: #ffffff;
+      --ink: #17202a;
+      --muted: #607085;
+      --line: #d8dee8;
+      --blue: #246bfe;
+      --green: #18885c;
+      --amber: #b7791f;
+      --red: #c24135;
+      --shadow: 0 14px 30px rgba(25, 34, 46, 0.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+    }
+    header {
+      background: #101828;
+      color: #fff;
+      padding: 32px 24px;
+    }
+    .wrap { max-width: 1180px; margin: 0 auto; }
+    h1, h2, h3 { margin: 0; line-height: 1.15; }
+    h1 { font-size: 32px; }
+    h2 { font-size: 22px; margin-bottom: 16px; }
+    h3 { font-size: 16px; }
+    p { color: var(--muted); margin: 6px 0 0; }
+    header p { color: #cbd5e1; }
+    main { padding: 28px 24px 40px; }
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(220px, 320px) 1fr;
+      gap: 20px;
+      align-items: stretch;
+      margin-bottom: 26px;
+    }
+    .global {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      padding: 22px;
+    }
+    .global-number {
+      font-size: 56px;
+      font-weight: 800;
+      letter-spacing: 0;
+      margin: 8px 0 10px;
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+    .card-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .status {
+      border-radius: 999px;
+      padding: 4px 9px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .status.ok { background: #e7f7ef; color: var(--green); }
+    .status.fail { background: #fdebea; color: var(--red); }
+    .big-number {
+      font-size: 34px;
+      font-weight: 800;
+      margin: 14px 0 8px;
+    }
+    .bar {
+      width: 100%;
+      height: 9px;
+      background: #e8edf4;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 7px;
+    }
+    .bar span {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+    }
+    .bar .high { background: var(--green); }
+    .bar .medium { background: var(--amber); }
+    .bar .low { background: var(--red); }
+    .bar .unknown { background: #9aa7b7; }
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 16px 0;
+    }
+    dt { color: var(--muted); font-size: 12px; }
+    dd { margin: 3px 0 0; font-weight: 700; }
+    .report-link {
+      color: var(--blue);
+      font-weight: 700;
+      text-decoration: none;
+    }
+    .report-link:hover { text-decoration: underline; }
+    section { margin-top: 26px; }
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    th, td {
+      padding: 13px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+      font-size: 14px;
+    }
+    thead th {
+      background: #eef2f7;
+      color: #3b4858;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0;
+    }
+    tbody tr:last-child th,
+    tbody tr:last-child td { border-bottom: 0; }
+    td strong { display: inline-block; min-width: 64px; }
+    .tests-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(260px, 1fr));
+      gap: 16px;
+    }
+    .test-block {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+      margin: 0;
+    }
+    ul { margin: 12px 0 0; padding-left: 20px; color: #324155; }
+    li + li { margin-top: 7px; }
+    .muted { color: var(--muted); }
+    .footer-note {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 24px;
+    }
+    @media (max-width: 860px) {
+      .hero, .cards, .tests-grid { grid-template-columns: 1fr; }
+      h1 { font-size: 26px; }
+      .global-number { font-size: 44px; }
+      th, td { padding: 11px 10px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>Cobertura de tests - SportData</h1>
+      <p>Generado el 18/5/2026, 11:33:58. Dashboard local sin dependencias externas.</p>
+    </div>
+  </header>
+  <main class="wrap">
+    <section class="hero" aria-labelledby="global-title">
+      <div class="global">
+        <h2 id="global-title">Resumen global</h2>
+        <div class="global-number">75.38%</div>
+        
+    <div class="bar" aria-label="75.38%">
+      <span class="medium" style="width: 75.38%"></span>
+    </div>
+  
+        <p>Calculado por lineas cubiertas sobre lineas instrumentadas en backend.</p>
+      </div>
+      <div class="cards">
+    <article class="card">
+      <div class="card-head">
+        <div>
+          <h3>api-gateway</h3>
+          <p>node · objetivo 60%</p>
+        </div>
+        <span class="status ok">ok</span>
+      </div>
+      <div class="big-number">83.39%</div>
+      
+    <div class="bar" aria-label="83.39%">
+      <span class="high" style="width: 83.39%"></span>
+    </div>
+  
+      <dl class="mini-grid">
+        <div><dt>Statements</dt><dd>83.39%</dd></div>
+        <div><dt>Branches</dt><dd>59.70%</dd></div>
+        <div><dt>Functions</dt><dd>92.45%</dd></div>
+      </dl>
+      <a class="report-link" href="services/api-gateway/index.html">Abrir informe HTML individual</a>
+    </article>
+  
+    <article class="card">
+      <div class="card-head">
+        <div>
+          <h3>microservicioUsuarios</h3>
+          <p>node · objetivo 60%</p>
+        </div>
+        <span class="status ok">ok</span>
+      </div>
+      <div class="big-number">72.46%</div>
+      
+    <div class="bar" aria-label="72.46%">
+      <span class="medium" style="width: 72.46%"></span>
+    </div>
+  
+      <dl class="mini-grid">
+        <div><dt>Statements</dt><dd>72.10%</dd></div>
+        <div><dt>Branches</dt><dd>41.02%</dd></div>
+        <div><dt>Functions</dt><dd>78.26%</dd></div>
+      </dl>
+      <a class="report-link" href="services/microservicioUsuarios/index.html">Abrir informe HTML individual</a>
+    </article>
+  
+    <article class="card">
+      <div class="card-head">
+        <div>
+          <h3>microservicioProductos</h3>
+          <p>python · objetivo 60%</p>
+        </div>
+        <span class="status ok">ok</span>
+      </div>
+      <div class="big-number">68.00%</div>
+      
+    <div class="bar" aria-label="68.00%">
+      <span class="medium" style="width: 68%"></span>
+    </div>
+  
+      <dl class="mini-grid">
+        <div><dt>Statements</dt><dd>73.90%</dd></div>
+        <div><dt>Branches</dt><dd>41.89%</dd></div>
+        <div><dt>Functions</dt><dd>N/A</dd></div>
+      </dl>
+      <a class="report-link" href="services/microservicioProductos/index.html">Abrir informe HTML individual</a>
+    </article>
+  
+    <article class="card">
+      <div class="card-head">
+        <div>
+          <h3>microservicioPedidos</h3>
+          <p>node · objetivo 50%</p>
+        </div>
+        <span class="status ok">ok</span>
+      </div>
+      <div class="big-number">72.40%</div>
+      
+    <div class="bar" aria-label="72.40%">
+      <span class="medium" style="width: 72.4%"></span>
+    </div>
+  
+      <dl class="mini-grid">
+        <div><dt>Statements</dt><dd>71.04%</dd></div>
+        <div><dt>Branches</dt><dd>48.79%</dd></div>
+        <div><dt>Functions</dt><dd>65.71%</dd></div>
+      </dl>
+      <a class="report-link" href="services/microservicioPedidos/index.html">Abrir informe HTML individual</a>
+    </article>
+  </div>
+    </section>
+
+    <section aria-labelledby="services-title">
+      <h2 id="services-title">Cobertura por microservicio</h2>
+      <div class="panel">
+        <table>
+          <thead>
+            <tr>
+              <th>Servicio</th>
+              <th>Statements</th>
+              <th>Branches</th>
+              <th>Functions</th>
+              <th>Lines</th>
+            </tr>
+          </thead>
+          <tbody>
+            
+    <tr>
+      <th scope="row">api-gateway</th>
+      <td><strong>83.39%</strong>
+    <div class="bar" aria-label="83.39%">
+      <span class="high" style="width: 83.39%"></span>
+    </div>
+  </td>
+      <td><strong>59.70%</strong>
+    <div class="bar" aria-label="59.70%">
+      <span class="low" style="width: 59.7%"></span>
+    </div>
+  </td>
+      <td><strong>92.45%</strong>
+    <div class="bar" aria-label="92.45%">
+      <span class="high" style="width: 92.45%"></span>
+    </div>
+  </td>
+      <td><strong>83.39%</strong>
+    <div class="bar" aria-label="83.39%">
+      <span class="high" style="width: 83.39%"></span>
+    </div>
+  </td>
+    </tr>
+  
+    <tr>
+      <th scope="row">microservicioUsuarios</th>
+      <td><strong>72.10%</strong>
+    <div class="bar" aria-label="72.10%">
+      <span class="medium" style="width: 72.1%"></span>
+    </div>
+  </td>
+      <td><strong>41.02%</strong>
+    <div class="bar" aria-label="41.02%">
+      <span class="low" style="width: 41.02%"></span>
+    </div>
+  </td>
+      <td><strong>78.26%</strong>
+    <div class="bar" aria-label="78.26%">
+      <span class="medium" style="width: 78.26%"></span>
+    </div>
+  </td>
+      <td><strong>72.46%</strong>
+    <div class="bar" aria-label="72.46%">
+      <span class="medium" style="width: 72.46%"></span>
+    </div>
+  </td>
+    </tr>
+  
+    <tr>
+      <th scope="row">microservicioProductos</th>
+      <td><strong>73.90%</strong>
+    <div class="bar" aria-label="73.90%">
+      <span class="medium" style="width: 73.9%"></span>
+    </div>
+  </td>
+      <td><strong>41.89%</strong>
+    <div class="bar" aria-label="41.89%">
+      <span class="low" style="width: 41.89%"></span>
+    </div>
+  </td>
+      <td><strong>N/A</strong>
+    <div class="bar" aria-label="N/A">
+      <span class="unknown" style="width: 0%"></span>
+    </div>
+  </td>
+      <td><strong>68.00%</strong>
+    <div class="bar" aria-label="68.00%">
+      <span class="medium" style="width: 68%"></span>
+    </div>
+  </td>
+    </tr>
+  
+    <tr>
+      <th scope="row">microservicioPedidos</th>
+      <td><strong>71.04%</strong>
+    <div class="bar" aria-label="71.04%">
+      <span class="medium" style="width: 71.04%"></span>
+    </div>
+  </td>
+      <td><strong>48.79%</strong>
+    <div class="bar" aria-label="48.79%">
+      <span class="low" style="width: 48.79%"></span>
+    </div>
+  </td>
+      <td><strong>65.71%</strong>
+    <div class="bar" aria-label="65.71%">
+      <span class="medium" style="width: 65.71%"></span>
+    </div>
+  </td>
+      <td><strong>72.40%</strong>
+    <div class="bar" aria-label="72.40%">
+      <span class="medium" style="width: 72.4%"></span>
+    </div>
+  </td>
+    </tr>
+  
+            <tr>
+              <th scope="row">GLOBAL</th>
+              <td><strong>74.96%</strong>
+    <div class="bar" aria-label="74.96%">
+      <span class="medium" style="width: 74.96%"></span>
+    </div>
+  </td>
+              <td><strong>47.17%</strong>
+    <div class="bar" aria-label="47.17%">
+      <span class="low" style="width: 47.17%"></span>
+    </div>
+  </td>
+              <td><strong>80.60%</strong>
+    <div class="bar" aria-label="80.60%">
+      <span class="high" style="width: 80.6%"></span>
+    </div>
+  </td>
+              <td><strong>75.38%</strong>
+    <div class="bar" aria-label="75.38%">
+      <span class="medium" style="width: 75.38%"></span>
+    </div>
+  </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section aria-labelledby="tests-title">
+      <h2 id="tests-title">Tests ejecutados</h2>
+      <div class="tests-grid">
+    <section class="test-block">
+      <h3>api-gateway</h3>
+      <ul><li>GET /health</li><li>GET /api</li><li>404 de rutas inexistentes</li><li>Proxy de productos con servicio mockeado</li><li>Autenticacion y autorizacion admin</li><li>Propagacion de errores remotos</li></ul>
+    </section>
+  
+    <section class="test-block">
+      <h3>microservicioUsuarios</h3>
+      <ul><li>GET /health</li><li>Registro valido</li><li>Registro invalido</li><li>Login correcto</li><li>Login incorrecto</li><li>Perfil sin token</li><li>Perfil con token</li></ul>
+    </section>
+  
+    <section class="test-block">
+      <h3>microservicioProductos</h3>
+      <ul><li>GET /</li><li>GET /products con filtros</li><li>GET /products/{id}</li><li>404 de producto inexistente</li><li>POST /products</li><li>PUT /products/{id}</li><li>PATCH /products/{id}/stock</li><li>DELETE /products/{id}</li></ul>
+    </section>
+  
+    <section class="test-block">
+      <h3>microservicioPedidos</h3>
+      <ul><li>GET /health</li><li>Carrito vacio</li><li>Carrito sin autenticacion</li><li>Alta, actualizacion y borrado de item</li><li>Favoritos</li><li>Checkout con carrito vacio</li><li>Checkout correcto</li><li>Estadisticas admin</li></ul>
+    </section>
+  </div>
+    </section>
+
+    <section aria-labelledby="low-title">
+      <h2 id="low-title">Archivos con menor cobertura</h2>
+      <div class="panel">
+        <table>
+          <thead>
+            <tr>
+              <th>Servicio</th>
+              <th>Archivo</th>
+              <th>Lines</th>
+              <th>Branches</th>
+            </tr>
+          </thead>
+          <tbody>
+    <tr>
+      <td>api-gateway</td>
+      <td>src/utils/httpClient.js</td>
+      <td><strong>0.00%</strong>
+    <div class="bar" aria-label="0.00%">
+      <span class="low" style="width: 0%"></span>
+    </div>
+  </td>
+      <td><strong>100.00%</strong>
+    <div class="bar" aria-label="100.00%">
+      <span class="high" style="width: 100%"></span>
+    </div>
+  </td>
+    </tr>
+  
+    <tr>
+      <td>microservicioPedidos</td>
+      <td>src/utils/mailService.js</td>
+      <td><strong>0.00%</strong>
+    <div class="bar" aria-label="0.00%">
+      <span class="low" style="width: 0%"></span>
+    </div>
+  </td>
+      <td><strong>0.00%</strong>
+    <div class="bar" aria-label="0.00%">
+      <span class="low" style="width: 0%"></span>
+    </div>
+  </td>
+    </tr>
+  
+    <tr>
+      <td>microservicioPedidos</td>
+      <td>src/utils/productClient.js</td>
+      <td><strong>0.00%</strong>
+    <div class="bar" aria-label="0.00%">
+      <span class="low" style="width: 0%"></span>
+    </div>
+  </td>
+      <td><strong>0.00%</strong>
+    <div class="bar" aria-label="0.00%">
+      <span class="low" style="width: 0%"></span>
+    </div>
+  </td>
+    </tr>
+  
+    <tr>
+      <td>microservicioPedidos</td>
+      <td>src/utils/errorHandler.js</td>
+      <td><strong>14.28%</strong>
+    <div class="bar" aria-label="14.28%">
+      <span class="low" style="width: 14.28%"></span>
+    </div>
+  </td>
+      <td><strong>0.00%</strong>
+    <div class="bar" aria-label="0.00%">
+      <span class="low" style="width: 0%"></span>
+    </div>
+  </td>
+    </tr>
+  
+    <tr>
+      <td>microservicioUsuarios</td>
+      <td>src/services/mailService.js</td>
+      <td><strong>20.00%</strong>
+    <div class="bar" aria-label="20.00%">
+      <span class="low" style="width: 20%"></span>
+    </div>
+  </td>
+      <td><strong>0.00%</strong>
+    <div class="bar" aria-label="0.00%">
+      <span class="low" style="width: 0%"></span>
+    </div>
+  </td>
+    </tr>
+  
+    <tr>
+      <td>microservicioProductos</td>
+      <td>app/routers/products.py</td>
+      <td><strong>55.00%</strong>
+    <div class="bar" aria-label="55.00%">
+      <span class="low" style="width: 55%"></span>
+    </div>
+  </td>
+      <td><strong>36.54%</strong>
+    <div class="bar" aria-label="36.54%">
+      <span class="low" style="width: 36.54%"></span>
+    </div>
+  </td>
+    </tr>
+  
+    <tr>
+      <td>microservicioUsuarios</td>
+      <td>src/services/authService.js</td>
+      <td><strong>57.50%</strong>
+    <div class="bar" aria-label="57.50%">
+      <span class="low" style="width: 57.5%"></span>
+    </div>
+  </td>
+      <td><strong>33.33%</strong>
+    <div class="bar" aria-label="33.33%">
+      <span class="low" style="width: 33.33%"></span>
+    </div>
+  </td>
+    </tr>
+  
+    <tr>
+      <td>microservicioUsuarios</td>
+      <td>src/services/userService.js</td>
+      <td><strong>60.75%</strong>
+    <div class="bar" aria-label="60.75%">
+      <span class="medium" style="width: 60.75%"></span>
+    </div>
+  </td>
+      <td><strong>43.13%</strong>
+    <div class="bar" aria-label="43.13%">
+      <span class="low" style="width: 43.13%"></span>
+    </div>
+  </td>
+    </tr>
+  
+    <tr>
+      <td>microservicioUsuarios</td>
+      <td>src/controllers/authController.js</td>
+      <td><strong>64.28%</strong>
+    <div class="bar" aria-label="64.28%">
+      <span class="medium" style="width: 64.28%"></span>
+    </div>
+  </td>
+      <td><strong>100.00%</strong>
+    <div class="bar" aria-label="100.00%">
+      <span class="high" style="width: 100%"></span>
+    </div>
+  </td>
+    </tr>
+  
+    <tr>
+      <td>microservicioUsuarios</td>
+      <td>src/routes/index.js</td>
+      <td><strong>64.28%</strong>
+    <div class="bar" aria-label="64.28%">
+      <span class="medium" style="width: 64.28%"></span>
+    </div>
+  </td>
+      <td><strong>0.00%</strong>
+    <div class="bar" aria-label="0.00%">
+      <span class="low" style="width: 0%"></span>
+    </div>
+  </td>
+    </tr>
+  
+    <tr>
+      <td>api-gateway</td>
+      <td>src/routes/auth.routes.js</td>
+      <td><strong>68.42%</strong>
+    <div class="bar" aria-label="68.42%">
+      <span class="medium" style="width: 68.42%"></span>
+    </div>
+  </td>
+      <td><strong>100.00%</strong>
+    <div class="bar" aria-label="100.00%">
+      <span class="high" style="width: 100%"></span>
+    </div>
+  </td>
+    </tr>
+  
+    <tr>
+      <td>microservicioPedidos</td>
+      <td>src/routes/cart.routes.js</td>
+      <td><strong>73.58%</strong>
+    <div class="bar" aria-label="73.58%">
+      <span class="medium" style="width: 73.58%"></span>
+    </div>
+  </td>
+      <td><strong>52.63%</strong>
+    <div class="bar" aria-label="52.63%">
+      <span class="low" style="width: 52.63%"></span>
+    </div>
+  </td>
+    </tr>
+  </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section aria-labelledby="recommendations-title">
+      <h2 id="recommendations-title">Recomendaciones de mejora</h2>
+      <div class="panel" style="padding: 18px;">
+        <ul><li>microservicioUsuarios: cubrir validaciones, permisos y respuestas 4xx/5xx para mejorar branches.</li><li>microservicioProductos: cubrir validaciones, permisos y respuestas 4xx/5xx para mejorar branches.</li><li>microservicioPedidos: cubrir validaciones, permisos y respuestas 4xx/5xx para mejorar branches.</li><li>Priorizar api-gateway/src/utils/httpClient.js, actualmente en 0.00% de lineas.</li><li>Priorizar microservicioPedidos/src/utils/mailService.js, actualmente en 0.00% de lineas.</li><li>Priorizar microservicioPedidos/src/utils/productClient.js, actualmente en 0.00% de lineas.</li></ul>
+      </div>
+    </section>
+    <p class="footer-note">Los informes individuales se copian en coverage-report/services y el resumen tecnico queda en coverage-report/summary.json.</p>
+  </main>
+</body>
+</html>

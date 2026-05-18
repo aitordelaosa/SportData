@@ -1,0 +1,1725 @@
+{
+  "generatedAt": "2026-05-18T09:33:58.501Z",
+  "dashboard": "coverage-report/index.html",
+  "global": {
+    "statements": {
+      "covered": 892,
+      "total": 1190,
+      "pct": 74.96
+    },
+    "branches": {
+      "covered": 200,
+      "total": 424,
+      "pct": 47.17
+    },
+    "functions": {
+      "covered": 108,
+      "total": 134,
+      "pct": 80.6
+    },
+    "lines": {
+      "covered": 888,
+      "total": 1178,
+      "pct": 75.38
+    }
+  },
+  "services": [
+    {
+      "key": "api-gateway",
+      "label": "api-gateway",
+      "type": "node",
+      "target": 60,
+      "status": "ok",
+      "exitCode": 0,
+      "htmlReport": "services/api-gateway/index.html",
+      "metrics": {
+        "statements": {
+          "covered": 226,
+          "total": 271,
+          "pct": 83.39
+        },
+        "branches": {
+          "covered": 40,
+          "total": 67,
+          "pct": 59.7
+        },
+        "functions": {
+          "covered": 49,
+          "total": 53,
+          "pct": 92.45
+        },
+        "lines": {
+          "covered": 226,
+          "total": 271,
+          "pct": 83.39
+        }
+      },
+      "files": [
+        {
+          "service": "api-gateway",
+          "path": "src/utils/httpClient.js",
+          "statements": {
+            "covered": 0,
+            "total": 6,
+            "pct": 0
+          },
+          "branches": {
+            "covered": 0,
+            "total": 0,
+            "pct": 100
+          },
+          "functions": {
+            "covered": 0,
+            "total": 0,
+            "pct": 100
+          },
+          "lines": {
+            "covered": 0,
+            "total": 6,
+            "pct": 0
+          }
+        },
+        {
+          "service": "api-gateway",
+          "path": "src/routes/auth.routes.js",
+          "statements": {
+            "covered": 13,
+            "total": 19,
+            "pct": 68.42
+          },
+          "branches": {
+            "covered": 0,
+            "total": 0,
+            "pct": 100
+          },
+          "functions": {
+            "covered": 2,
+            "total": 3,
+            "pct": 66.66
+          },
+          "lines": {
+            "covered": 13,
+            "total": 19,
+            "pct": 68.42
+          }
+        },
+        {
+          "service": "api-gateway",
+          "path": "src/middleware/errorHandler.js",
+          "statements": {
+            "covered": 11,
+            "total": 14,
+            "pct": 78.57
+          },
+          "branches": {
+            "covered": 7,
+            "total": 18,
+            "pct": 38.88
+          },
+          "functions": {
+            "covered": 2,
+            "total": 2,
+            "pct": 100
+          },
+          "lines": {
+            "covered": 11,
+            "total": 14,
+            "pct": 78.57
+          }
+        },
+        {
+          "service": "api-gateway",
+          "path": "src/routes/product.routes.js",
+          "statements": {
+            "covered": 34,
+            "total": 43,
+            "pct": 79.06
+          },
+          "branches": {
+            "covered": 5,
+            "total": 8,
+            "pct": 62.5
+          },
+          "functions": {
+            "covered": 6,
+            "total": 6,
+            "pct": 100
+          },
+          "lines": {
+            "covered": 34,
+            "total": 43,
+            "pct": 79.06
+          }
+        },
+        {
+          "service": "api-gateway",
+          "path": "src/routes/order.routes.js",
+          "statements": {
+            "covered": 47,
+            "total": 58,
+            "pct": 81.03
+          },
+          "branches": {
+            "covered": 1,
+            "total": 2,
+            "pct": 50
+          },
+          "functions": {
+            "covered": 10,
+            "total": 10,
+            "pct": 100
+          },
+          "lines": {
+            "covered": 47,
+            "total": 58,
+            "pct": 81.03
+          }
+        },
+        {
+          "service": "api-gateway",
+          "path": "src/routes/user.routes.js",
+          "statements": {
+            "covered": 21,
+            "total": 25,
+            "pct": 84
+          },
+          "branches": {
+            "covered": 1,
+            "total": 2,
+            "pct": 50
+          },
+          "functions": {
+            "covered": 3,
+            "total": 3,
+            "pct": 100
+          },
+          "lines": {
+            "covered": 21,
+            "total": 25,
+            "pct": 84
+          }
+        },
+        {
+          "service": "api-gateway",
+          "path": "src/services/userService.js",
+          "statements": {
+            "covered": 12,
+            "total": 14,
+            "pct": 85.71
+          },
+          "branches": {
+            "covered": 0,
+            "total": 0,
+            "pct": 100
+          },
+          "functions": {
+            "covered": 5,
+            "total": 6,
+            "pct": 83.33
+          },
+          "lines": {
+            "covered": 12,
+            "total": 14,
+            "pct": 85.71
+          }
+        },
+        {
+          "service": "api-gateway",
+          "path": "src/app.js",
+          "statements": {
+            "covered": 22,
+            "total": 24,
+            "pct": 91.66
+          },
+          "branches": {
+            "covered": 4,
+            "total": 4,
+            "pct": 100
+          },
+          "functions": {
+            "covered": 2,
+            "total": 4,
+            "pct": 50
+          },
+          "lines": {
+            "covered": 22,
+            "total": 24,
+            "pct": 91.66
+          }
+        },
+        {
+          "service": "api-gateway",
+          "path": "src/services/productService.js",
+          "statements": {
+            "covered": 13,
+            "total": 14,
+            "pct": 92.85
+          },
+          "branches": {
+            "covered": 0,
+            "total": 1,
+            "pct": 0
+          },
+          "functions": {
+            "covered": 6,
+            "total": 6,
+            "pct": 100
+          },
+          "lines": {
+            "covered": 13,
+            "total": 14,
+            "pct": 92.85
+          }
+        },
+        {
+          "service": "api-gateway",
+          "path": "src/middleware/auth.js",
+          "statements": {
+            "covered": 15,
+            "total": 16,
+            "pct": 93.75
+          },
+          "branches": {
+            "covered": 6,
+            "total": 6,
+            "pct": 100
+          },
+          "functions": {
+            "covered": 2,
+            "total": 2,
+            "pct": 100
+          },
+          "lines": {
+            "covered": 15,
+            "total": 16,
+            "pct": 93.75
+          }
+        },
+        {
+          "service": "api-gateway",
+          "path": "src/routes/index.js",
+          "statements": {
+            "covered": 16,
+            "total": 16,
+            "pct": 100
+          },
+          "branches": {
+            "covered": 3,
+            "total": 5,
+            "pct": 60
+          },
+          "functions": {
+            "covered": 1,
+            "total": 1,
+            "pct": 100
+          },
+          "lines": {
+            "covered": 16,
+            "total": 16,
+            "pct": 100
+          }
+        },
+        {
+          "service": "api-gateway",
+          "path": "src/services/orderService.js",
+          "statements": {
+            "covered": 22,
+            "total": 22,
+            "pct": 100
+          },
+          "branches": {
+            "covered": 13,
+            "total": 21,
+            "pct": 61.9
+          },
+          "functions": {
+            "covered": 10,
+            "total": 10,
+            "pct": 100
+          },
+          "lines": {
+            "covered": 22,
+            "total": 22,
+            "pct": 100
+          }
+        }
+      ],
+      "tests": [
+        "GET /health",
+        "GET /api",
+        "404 de rutas inexistentes",
+        "Proxy de productos con servicio mockeado",
+        "Autenticacion y autorizacion admin",
+        "Propagacion de errores remotos"
+      ],
+      "notes": []
+    },
+    {
+      "key": "microservicioUsuarios",
+      "label": "microservicioUsuarios",
+      "type": "node",
+      "target": 60,
+      "status": "ok",
+      "exitCode": 0,
+      "htmlReport": "services/microservicioUsuarios/index.html",
+      "metrics": {
+        "statements": {
+          "covered": 230,
+          "total": 319,
+          "pct": 72.1
+        },
+        "branches": {
+          "covered": 48,
+          "total": 117,
+          "pct": 41.02
+        },
+        "functions": {
+          "covered": 36,
+          "total": 46,
+          "pct": 78.26
+        },
+        "lines": {
+          "covered": 229,
+          "total": 316,
+          "pct": 72.46
+        }
+      },
+      "files": [
+        {
+          "service": "microservicioUsuarios",
+          "path": "src/services/mailService.js",
+          "statements": {
+            "covered": 4,
+            "total": 20,
+            "pct": 20
+          },
+          "branches": {
+            "covered": 0,
+            "total": 17,
+            "pct": 0
+          },
+          "functions": {
+            "covered": 0,
+            "total": 2,
+            "pct": 0
+          },
+          "lines": {
+            "covered": 4,
+            "total": 20,
+            "pct": 20
+          }
+        },
+        {
+          "service": "microservicioUsuarios",
+          "path": "src/services/authService.js",
+          "statements": {
+            "covered": 23,
+            "total": 41,
+            "pct": 56.09
+          },
+          "branches": {
+            "covered": 3,
+            "total": 9,
+            "pct": 33.33
+          },
+          "functions": {
+            "covered": 3,
+            "total": 5,
+            "pct": 60
+          },
+          "lines": {
+            "covered": 23,
+            "total": 40,
+            "pct": 57.5
+          }
+        },
+        {
+          "service": "microservicioUsuarios",
+          "path": "src/services/userService.js",
+          "statements": {
+            "covered": 48,
+            "total": 80,
+            "pct": 60
+          },
+          "branches": {
+            "covered": 22,
+            "total": 51,
+            "pct": 43.13
+          },
+          "functions": {
+            "covered": 10,
+            "total": 12,
+            "pct": 83.33
+          },
+          "lines": {
+            "covered": 48,
+            "total": 79,
+            "pct": 60.75
+          }
+        },
+        {
+          "service": "microservicioUsuarios",
+          "path": "src/controllers/authController.js",
+          "statements": {
+            "covered": 9,
+            "total": 14,
+            "pct": 64.28
+          },
+          "branches": {
+            "covered": 0,
+            "total": 0,
+            "pct": 100
+          },
+          "functions": {
+            "covered": 2,
+            "total": 3,
+            "pct": 66.66
+          },
+          "lines": {
+            "covered": 9,
+            "total": 14,
+            "pct": 64.28
+          }
+        },
+        {
+          "service": "microservicioUsuarios",
+          "path": "src/routes/index.js",
+          "statements": {
+            "covered": 9,
+            "total": 14,
+            "pct": 64.28
+          },
+          "branches": {
+            "covered": 0,
+            "total": 5,
+            "pct": 0
+          },
+          "functions": {
+            "covered": 0,
+            "total": 2,
+            "pct": 0
+          },
+          "lines": {
+            "covered": 9,
+            "total": 14,
+            "pct": 64.28
+          }
+        },
+        {
+          "service": "microservicioUsuarios",
+          "path": "src/middlewares/authMiddleware.js",
+          "statements": {
+            "covered": 19,
+            "total": 24,
+            "pct": 79.16
+          },
+          "branches": {
+            "covered": 8,
+            "total": 14,
+            "pct": 57.14
+          },
+          "functions": {
+            "covered": 3,
+            "total": 3,
+            "pct": 100
+          },
+          "lines": {
+            "covered": 19,
+            "total": 24,
+            "pct": 79.16
+          }
+        },
+        {
+          "service": "microservicioUsuarios",
+          "path": "src/middlewares/errorHandler.js",
+          "statements": {
+            "covered": 9,
+            "total": 11,
+            "pct": 81.81
+          },
+          "branches": {
+            "covered": 7,
+            "total": 10,
+            "pct": 70
+          },
+          "functions": {
+            "covered": 1,
+            "total": 2,
+            "pct": 50
+          },
+          "lines": {
+            "covered": 9,
+            "total": 11,
+            "pct": 81.81
+          }
+        },
+        {
+          "service": "microservicioUsuarios",
+          "path": "src/controllers/userController.js",
+          "statements": {
+            "covered": 25,
+            "total": 30,
+            "pct": 83.33
+          },
+          "branches": {
+            "covered": 1,
+            "total": 2,
+            "pct": 50
+          },
+          "functions": {
+            "covered": 6,
+            "total": 6,
+            "pct": 100
+          },
+          "lines": {
+            "covered": 25,
+            "total": 30,
+            "pct": 83.33
+          }
+        },
+        {
+          "service": "microservicioUsuarios",
+          "path": "src/utils/roles.js",
+          "statements": {
+            "covered": 8,
+            "total": 9,
+            "pct": 88.88
+          },
+          "branches": {
+            "covered": 3,
+            "total": 4,
+            "pct": 75
+          },
+          "functions": {
+            "covered": 2,
+            "total": 2,
+            "pct": 100
+          },
+          "lines": {
+            "covered": 8,
+            "total": 9,
+            "pct": 88.88
+          }
+        },
+        {
+          "service": "microservicioUsuarios",
+          "path": "src/app.js",
+          "statements": {
+            "covered": 13,
+            "total": 13,
+            "pct": 100
+          },
+          "branches": {
+            "covered": 0,
+            "total": 0,
+            "pct": 100
+          },
+          "functions": {
+            "covered": 2,
+            "total": 2,
+            "pct": 100
+          },
+          "lines": {
+            "covered": 13,
+            "total": 13,
+            "pct": 100
+          }
+        },
+        {
+          "service": "microservicioUsuarios",
+          "path": "src/middlewares/validateRequest.js",
+          "statements": {
+            "covered": 9,
+            "total": 9,
+            "pct": 100
+          },
+          "branches": {
+            "covered": 2,
+            "total": 2,
+            "pct": 100
+          },
+          "functions": {
+            "covered": 2,
+            "total": 2,
+            "pct": 100
+          },
+          "lines": {
+            "covered": 8,
+            "total": 8,
+            "pct": 100
+          }
+        },
+        {
+          "service": "microservicioUsuarios",
+          "path": "src/models/user.model.js",
+          "statements": {
+            "covered": 5,
+            "total": 5,
+            "pct": 100
+          },
+          "branches": {
+            "covered": 0,
+            "total": 0,
+            "pct": 100
+          },
+          "functions": {
+            "covered": 0,
+            "total": 0,
+            "pct": 100
+          },
+          "lines": {
+            "covered": 5,
+            "total": 5,
+            "pct": 100
+          }
+        },
+        {
+          "service": "microservicioUsuarios",
+          "path": "src/routes/auth.routes.js",
+          "statements": {
+            "covered": 9,
+            "total": 9,
+            "pct": 100
+          },
+          "branches": {
+            "covered": 0,
+            "total": 0,
+            "pct": 100
+          },
+          "functions": {
+            "covered": 0,
+            "total": 0,
+            "pct": 100
+          },
+          "lines": {
+            "covered": 9,
+            "total": 9,
+            "pct": 100
+          }
+        },
+        {
+          "service": "microservicioUsuarios",
+          "path": "src/routes/user.routes.js",
+          "statements": {
+            "covered": 13,
+            "total": 13,
+            "pct": 100
+          },
+          "branches": {
+            "covered": 0,
+            "total": 0,
+            "pct": 100
+          },
+          "functions": {
+            "covered": 0,
+            "total": 0,
+            "pct": 100
+          },
+          "lines": {
+            "covered": 13,
+            "total": 13,
+            "pct": 100
+          }
+        },
+        {
+          "service": "microservicioUsuarios",
+          "path": "src/utils/appError.js",
+          "statements": {
+            "covered": 6,
+            "total": 6,
+            "pct": 100
+          },
+          "branches": {
+            "covered": 1,
+            "total": 2,
+            "pct": 50
+          },
+          "functions": {
+            "covered": 1,
+            "total": 1,
+            "pct": 100
+          },
+          "lines": {
+            "covered": 6,
+            "total": 6,
+            "pct": 100
+          }
+        },
+        {
+          "service": "microservicioUsuarios",
+          "path": "src/utils/jwt.js",
+          "statements": {
+            "covered": 5,
+            "total": 5,
+            "pct": 100
+          },
+          "branches": {
+            "covered": 1,
+            "total": 1,
+            "pct": 100
+          },
+          "functions": {
+            "covered": 2,
+            "total": 2,
+            "pct": 100
+          },
+          "lines": {
+            "covered": 5,
+            "total": 5,
+            "pct": 100
+          }
+        },
+        {
+          "service": "microservicioUsuarios",
+          "path": "src/utils/password.js",
+          "statements": {
+            "covered": 5,
+            "total": 5,
+            "pct": 100
+          },
+          "branches": {
+            "covered": 0,
+            "total": 0,
+            "pct": 100
+          },
+          "functions": {
+            "covered": 2,
+            "total": 2,
+            "pct": 100
+          },
+          "lines": {
+            "covered": 5,
+            "total": 5,
+            "pct": 100
+          }
+        },
+        {
+          "service": "microservicioUsuarios",
+          "path": "src/validators/authValidators.js",
+          "statements": {
+            "covered": 6,
+            "total": 6,
+            "pct": 100
+          },
+          "branches": {
+            "covered": 0,
+            "total": 0,
+            "pct": 100
+          },
+          "functions": {
+            "covered": 0,
+            "total": 0,
+            "pct": 100
+          },
+          "lines": {
+            "covered": 6,
+            "total": 6,
+            "pct": 100
+          }
+        },
+        {
+          "service": "microservicioUsuarios",
+          "path": "src/validators/userValidators.js",
+          "statements": {
+            "covered": 5,
+            "total": 5,
+            "pct": 100
+          },
+          "branches": {
+            "covered": 0,
+            "total": 0,
+            "pct": 100
+          },
+          "functions": {
+            "covered": 0,
+            "total": 0,
+            "pct": 100
+          },
+          "lines": {
+            "covered": 5,
+            "total": 5,
+            "pct": 100
+          }
+        }
+      ],
+      "tests": [
+        "GET /health",
+        "Registro valido",
+        "Registro invalido",
+        "Login correcto",
+        "Login incorrecto",
+        "Perfil sin token",
+        "Perfil con token"
+      ],
+      "notes": []
+    },
+    {
+      "key": "microservicioProductos",
+      "label": "microservicioProductos",
+      "type": "python",
+      "target": 60,
+      "status": "ok",
+      "exitCode": 0,
+      "htmlReport": "services/microservicioProductos/index.html",
+      "metrics": {
+        "statements": {
+          "covered": 252,
+          "total": 341,
+          "pct": 73.9
+        },
+        "branches": {
+          "covered": 31,
+          "total": 74,
+          "pct": 41.89
+        },
+        "functions": {
+          "covered": 0,
+          "total": 0,
+          "pct": null
+        },
+        "lines": {
+          "covered": 252,
+          "total": 341,
+          "pct": 68
+        }
+      },
+      "files": [
+        {
+          "service": "microservicioProductos",
+          "path": "app/routers/products.py",
+          "statements": {
+            "covered": 115,
+            "total": 193,
+            "pct": 59.59
+          },
+          "branches": {
+            "covered": 19,
+            "total": 52,
+            "pct": 36.54
+          },
+          "functions": {
+            "covered": 0,
+            "total": 0,
+            "pct": null
+          },
+          "lines": {
+            "covered": 115,
+            "total": 193,
+            "pct": 55
+          }
+        },
+        {
+          "service": "microservicioProductos",
+          "path": "app/crud.py",
+          "statements": {
+            "covered": 44,
+            "total": 54,
+            "pct": 81.48
+          },
+          "branches": {
+            "covered": 9,
+            "total": 16,
+            "pct": 56.25
+          },
+          "functions": {
+            "covered": 0,
+            "total": 0,
+            "pct": null
+          },
+          "lines": {
+            "covered": 44,
+            "total": 54,
+            "pct": 76
+          }
+        },
+        {
+          "service": "microservicioProductos",
+          "path": "app/database.py",
+          "statements": {
+            "covered": 18,
+            "total": 18,
+            "pct": 100
+          },
+          "branches": {
+            "covered": 2,
+            "total": 4,
+            "pct": 50
+          },
+          "functions": {
+            "covered": 0,
+            "total": 0,
+            "pct": null
+          },
+          "lines": {
+            "covered": 18,
+            "total": 18,
+            "pct": 91
+          }
+        },
+        {
+          "service": "microservicioProductos",
+          "path": "app/main.py",
+          "statements": {
+            "covered": 19,
+            "total": 20,
+            "pct": 95
+          },
+          "branches": {
+            "covered": 1,
+            "total": 2,
+            "pct": 50
+          },
+          "functions": {
+            "covered": 0,
+            "total": 0,
+            "pct": null
+          },
+          "lines": {
+            "covered": 19,
+            "total": 20,
+            "pct": 91
+          }
+        },
+        {
+          "service": "microservicioProductos",
+          "path": "app/__init__.py",
+          "statements": {
+            "covered": 0,
+            "total": 0,
+            "pct": null
+          },
+          "branches": {
+            "covered": 0,
+            "total": 0,
+            "pct": null
+          },
+          "functions": {
+            "covered": 0,
+            "total": 0,
+            "pct": null
+          },
+          "lines": {
+            "covered": 0,
+            "total": 0,
+            "pct": 100
+          }
+        },
+        {
+          "service": "microservicioProductos",
+          "path": "app/models.py",
+          "statements": {
+            "covered": 15,
+            "total": 15,
+            "pct": 100
+          },
+          "branches": {
+            "covered": 0,
+            "total": 0,
+            "pct": null
+          },
+          "functions": {
+            "covered": 0,
+            "total": 0,
+            "pct": null
+          },
+          "lines": {
+            "covered": 15,
+            "total": 15,
+            "pct": 100
+          }
+        },
+        {
+          "service": "microservicioProductos",
+          "path": "app/routers/__init__.py",
+          "statements": {
+            "covered": 0,
+            "total": 0,
+            "pct": null
+          },
+          "branches": {
+            "covered": 0,
+            "total": 0,
+            "pct": null
+          },
+          "functions": {
+            "covered": 0,
+            "total": 0,
+            "pct": null
+          },
+          "lines": {
+            "covered": 0,
+            "total": 0,
+            "pct": 100
+          }
+        },
+        {
+          "service": "microservicioProductos",
+          "path": "app/schemas.py",
+          "statements": {
+            "covered": 41,
+            "total": 41,
+            "pct": 100
+          },
+          "branches": {
+            "covered": 0,
+            "total": 0,
+            "pct": null
+          },
+          "functions": {
+            "covered": 0,
+            "total": 0,
+            "pct": null
+          },
+          "lines": {
+            "covered": 41,
+            "total": 41,
+            "pct": 100
+          }
+        }
+      ],
+      "tests": [
+        "GET /",
+        "GET /products con filtros",
+        "GET /products/{id}",
+        "404 de producto inexistente",
+        "POST /products",
+        "PUT /products/{id}",
+        "PATCH /products/{id}/stock",
+        "DELETE /products/{id}"
+      ],
+      "notes": [
+        "coverage.py no expone cobertura de funciones; el valor aparece como N/A."
+      ]
+    },
+    {
+      "key": "microservicioPedidos",
+      "label": "microservicioPedidos",
+      "type": "node",
+      "target": 50,
+      "status": "ok",
+      "exitCode": 0,
+      "htmlReport": "services/microservicioPedidos/index.html",
+      "metrics": {
+        "statements": {
+          "covered": 184,
+          "total": 259,
+          "pct": 71.04
+        },
+        "branches": {
+          "covered": 81,
+          "total": 166,
+          "pct": 48.79
+        },
+        "functions": {
+          "covered": 23,
+          "total": 35,
+          "pct": 65.71
+        },
+        "lines": {
+          "covered": 181,
+          "total": 250,
+          "pct": 72.4
+        }
+      },
+      "files": [
+        {
+          "service": "microservicioPedidos",
+          "path": "src/utils/mailService.js",
+          "statements": {
+            "covered": 0,
+            "total": 28,
+            "pct": 0
+          },
+          "branches": {
+            "covered": 0,
+            "total": 34,
+            "pct": 0
+          },
+          "functions": {
+            "covered": 0,
+            "total": 7,
+            "pct": 0
+          },
+          "lines": {
+            "covered": 0,
+            "total": 27,
+            "pct": 0
+          }
+        },
+        {
+          "service": "microservicioPedidos",
+          "path": "src/utils/productClient.js",
+          "statements": {
+            "covered": 0,
+            "total": 6,
+            "pct": 0
+          },
+          "branches": {
+            "covered": 0,
+            "total": 4,
+            "pct": 0
+          },
+          "functions": {
+            "covered": 0,
+            "total": 1,
+            "pct": 0
+          },
+          "lines": {
+            "covered": 0,
+            "total": 6,
+            "pct": 0
+          }
+        },
+        {
+          "service": "microservicioPedidos",
+          "path": "src/utils/errorHandler.js",
+          "statements": {
+            "covered": 1,
+            "total": 7,
+            "pct": 14.28
+          },
+          "branches": {
+            "covered": 0,
+            "total": 6,
+            "pct": 0
+          },
+          "functions": {
+            "covered": 0,
+            "total": 1,
+            "pct": 0
+          },
+          "lines": {
+            "covered": 1,
+            "total": 7,
+            "pct": 14.28
+          }
+        },
+        {
+          "service": "microservicioPedidos",
+          "path": "src/routes/cart.routes.js",
+          "statements": {
+            "covered": 39,
+            "total": 53,
+            "pct": 73.58
+          },
+          "branches": {
+            "covered": 10,
+            "total": 19,
+            "pct": 52.63
+          },
+          "functions": {
+            "covered": 5,
+            "total": 6,
+            "pct": 83.33
+          },
+          "lines": {
+            "covered": 39,
+            "total": 53,
+            "pct": 73.58
+          }
+        },
+        {
+          "service": "microservicioPedidos",
+          "path": "src/routes/favorites.routes.js",
+          "statements": {
+            "covered": 27,
+            "total": 32,
+            "pct": 84.37
+          },
+          "branches": {
+            "covered": 1,
+            "total": 2,
+            "pct": 50
+          },
+          "functions": {
+            "covered": 5,
+            "total": 5,
+            "pct": 100
+          },
+          "lines": {
+            "covered": 27,
+            "total": 32,
+            "pct": 84.37
+          }
+        },
+        {
+          "service": "microservicioPedidos",
+          "path": "src/routes/orders.routes.js",
+          "statements": {
+            "covered": 66,
+            "total": 81,
+            "pct": 81.48
+          },
+          "branches": {
+            "covered": 61,
+            "total": 89,
+            "pct": 68.53
+          },
+          "functions": {
+            "covered": 10,
+            "total": 12,
+            "pct": 83.33
+          },
+          "lines": {
+            "covered": 63,
+            "total": 73,
+            "pct": 86.3
+          }
+        },
+        {
+          "service": "microservicioPedidos",
+          "path": "src/middleware/auth.js",
+          "statements": {
+            "covered": 11,
+            "total": 12,
+            "pct": 91.66
+          },
+          "branches": {
+            "covered": 7,
+            "total": 8,
+            "pct": 87.5
+          },
+          "functions": {
+            "covered": 1,
+            "total": 1,
+            "pct": 100
+          },
+          "lines": {
+            "covered": 11,
+            "total": 12,
+            "pct": 91.66
+          }
+        },
+        {
+          "service": "microservicioPedidos",
+          "path": "src/app.js",
+          "statements": {
+            "covered": 17,
+            "total": 17,
+            "pct": 100
+          },
+          "branches": {
+            "covered": 2,
+            "total": 4,
+            "pct": 50
+          },
+          "functions": {
+            "covered": 2,
+            "total": 2,
+            "pct": 100
+          },
+          "lines": {
+            "covered": 17,
+            "total": 17,
+            "pct": 100
+          }
+        },
+        {
+          "service": "microservicioPedidos",
+          "path": "src/models/CartItem.js",
+          "statements": {
+            "covered": 4,
+            "total": 4,
+            "pct": 100
+          },
+          "branches": {
+            "covered": 0,
+            "total": 0,
+            "pct": 100
+          },
+          "functions": {
+            "covered": 0,
+            "total": 0,
+            "pct": 100
+          },
+          "lines": {
+            "covered": 4,
+            "total": 4,
+            "pct": 100
+          }
+        },
+        {
+          "service": "microservicioPedidos",
+          "path": "src/models/Favorite.js",
+          "statements": {
+            "covered": 4,
+            "total": 4,
+            "pct": 100
+          },
+          "branches": {
+            "covered": 0,
+            "total": 0,
+            "pct": 100
+          },
+          "functions": {
+            "covered": 0,
+            "total": 0,
+            "pct": 100
+          },
+          "lines": {
+            "covered": 4,
+            "total": 4,
+            "pct": 100
+          }
+        },
+        {
+          "service": "microservicioPedidos",
+          "path": "src/models/Order.js",
+          "statements": {
+            "covered": 6,
+            "total": 6,
+            "pct": 100
+          },
+          "branches": {
+            "covered": 0,
+            "total": 0,
+            "pct": 100
+          },
+          "functions": {
+            "covered": 0,
+            "total": 0,
+            "pct": 100
+          },
+          "lines": {
+            "covered": 6,
+            "total": 6,
+            "pct": 100
+          }
+        },
+        {
+          "service": "microservicioPedidos",
+          "path": "src/routes/index.js",
+          "statements": {
+            "covered": 9,
+            "total": 9,
+            "pct": 100
+          },
+          "branches": {
+            "covered": 0,
+            "total": 0,
+            "pct": 100
+          },
+          "functions": {
+            "covered": 0,
+            "total": 0,
+            "pct": 100
+          },
+          "lines": {
+            "covered": 9,
+            "total": 9,
+            "pct": 100
+          }
+        }
+      ],
+      "tests": [
+        "GET /health",
+        "Carrito vacio",
+        "Carrito sin autenticacion",
+        "Alta, actualizacion y borrado de item",
+        "Favoritos",
+        "Checkout con carrito vacio",
+        "Checkout correcto",
+        "Estadisticas admin"
+      ],
+      "notes": []
+    }
+  ],
+  "lowestFiles": [
+    {
+      "service": "api-gateway",
+      "path": "src/utils/httpClient.js",
+      "statements": {
+        "covered": 0,
+        "total": 6,
+        "pct": 0
+      },
+      "branches": {
+        "covered": 0,
+        "total": 0,
+        "pct": 100
+      },
+      "functions": {
+        "covered": 0,
+        "total": 0,
+        "pct": 100
+      },
+      "lines": {
+        "covered": 0,
+        "total": 6,
+        "pct": 0
+      }
+    },
+    {
+      "service": "microservicioPedidos",
+      "path": "src/utils/mailService.js",
+      "statements": {
+        "covered": 0,
+        "total": 28,
+        "pct": 0
+      },
+      "branches": {
+        "covered": 0,
+        "total": 34,
+        "pct": 0
+      },
+      "functions": {
+        "covered": 0,
+        "total": 7,
+        "pct": 0
+      },
+      "lines": {
+        "covered": 0,
+        "total": 27,
+        "pct": 0
+      }
+    },
+    {
+      "service": "microservicioPedidos",
+      "path": "src/utils/productClient.js",
+      "statements": {
+        "covered": 0,
+        "total": 6,
+        "pct": 0
+      },
+      "branches": {
+        "covered": 0,
+        "total": 4,
+        "pct": 0
+      },
+      "functions": {
+        "covered": 0,
+        "total": 1,
+        "pct": 0
+      },
+      "lines": {
+        "covered": 0,
+        "total": 6,
+        "pct": 0
+      }
+    },
+    {
+      "service": "microservicioPedidos",
+      "path": "src/utils/errorHandler.js",
+      "statements": {
+        "covered": 1,
+        "total": 7,
+        "pct": 14.28
+      },
+      "branches": {
+        "covered": 0,
+        "total": 6,
+        "pct": 0
+      },
+      "functions": {
+        "covered": 0,
+        "total": 1,
+        "pct": 0
+      },
+      "lines": {
+        "covered": 1,
+        "total": 7,
+        "pct": 14.28
+      }
+    },
+    {
+      "service": "microservicioUsuarios",
+      "path": "src/services/mailService.js",
+      "statements": {
+        "covered": 4,
+        "total": 20,
+        "pct": 20
+      },
+      "branches": {
+        "covered": 0,
+        "total": 17,
+        "pct": 0
+      },
+      "functions": {
+        "covered": 0,
+        "total": 2,
+        "pct": 0
+      },
+      "lines": {
+        "covered": 4,
+        "total": 20,
+        "pct": 20
+      }
+    },
+    {
+      "service": "microservicioProductos",
+      "path": "app/routers/products.py",
+      "statements": {
+        "covered": 115,
+        "total": 193,
+        "pct": 59.59
+      },
+      "branches": {
+        "covered": 19,
+        "total": 52,
+        "pct": 36.54
+      },
+      "functions": {
+        "covered": 0,
+        "total": 0,
+        "pct": null
+      },
+      "lines": {
+        "covered": 115,
+        "total": 193,
+        "pct": 55
+      }
+    },
+    {
+      "service": "microservicioUsuarios",
+      "path": "src/services/authService.js",
+      "statements": {
+        "covered": 23,
+        "total": 41,
+        "pct": 56.09
+      },
+      "branches": {
+        "covered": 3,
+        "total": 9,
+        "pct": 33.33
+      },
+      "functions": {
+        "covered": 3,
+        "total": 5,
+        "pct": 60
+      },
+      "lines": {
+        "covered": 23,
+        "total": 40,
+        "pct": 57.5
+      }
+    },
+    {
+      "service": "microservicioUsuarios",
+      "path": "src/services/userService.js",
+      "statements": {
+        "covered": 48,
+        "total": 80,
+        "pct": 60
+      },
+      "branches": {
+        "covered": 22,
+        "total": 51,
+        "pct": 43.13
+      },
+      "functions": {
+        "covered": 10,
+        "total": 12,
+        "pct": 83.33
+      },
+      "lines": {
+        "covered": 48,
+        "total": 79,
+        "pct": 60.75
+      }
+    },
+    {
+      "service": "microservicioUsuarios",
+      "path": "src/controllers/authController.js",
+      "statements": {
+        "covered": 9,
+        "total": 14,
+        "pct": 64.28
+      },
+      "branches": {
+        "covered": 0,
+        "total": 0,
+        "pct": 100
+      },
+      "functions": {
+        "covered": 2,
+        "total": 3,
+        "pct": 66.66
+      },
+      "lines": {
+        "covered": 9,
+        "total": 14,
+        "pct": 64.28
+      }
+    },
+    {
+      "service": "microservicioUsuarios",
+      "path": "src/routes/index.js",
+      "statements": {
+        "covered": 9,
+        "total": 14,
+        "pct": 64.28
+      },
+      "branches": {
+        "covered": 0,
+        "total": 5,
+        "pct": 0
+      },
+      "functions": {
+        "covered": 0,
+        "total": 2,
+        "pct": 0
+      },
+      "lines": {
+        "covered": 9,
+        "total": 14,
+        "pct": 64.28
+      }
+    },
+    {
+      "service": "api-gateway",
+      "path": "src/routes/auth.routes.js",
+      "statements": {
+        "covered": 13,
+        "total": 19,
+        "pct": 68.42
+      },
+      "branches": {
+        "covered": 0,
+        "total": 0,
+        "pct": 100
+      },
+      "functions": {
+        "covered": 2,
+        "total": 3,
+        "pct": 66.66
+      },
+      "lines": {
+        "covered": 13,
+        "total": 19,
+        "pct": 68.42
+      }
+    },
+    {
+      "service": "microservicioPedidos",
+      "path": "src/routes/cart.routes.js",
+      "statements": {
+        "covered": 39,
+        "total": 53,
+        "pct": 73.58
+      },
+      "branches": {
+        "covered": 10,
+        "total": 19,
+        "pct": 52.63
+      },
+      "functions": {
+        "covered": 5,
+        "total": 6,
+        "pct": 83.33
+      },
+      "lines": {
+        "covered": 39,
+        "total": 53,
+        "pct": 73.58
+      }
+    }
+  ],
+  "recommendations": [
+    "microservicioUsuarios: cubrir validaciones, permisos y respuestas 4xx/5xx para mejorar branches.",
+    "microservicioProductos: cubrir validaciones, permisos y respuestas 4xx/5xx para mejorar branches.",
+    "microservicioPedidos: cubrir validaciones, permisos y respuestas 4xx/5xx para mejorar branches.",
+    "Priorizar api-gateway/src/utils/httpClient.js, actualmente en 0.00% de lineas.",
+    "Priorizar microservicioPedidos/src/utils/mailService.js, actualmente en 0.00% de lineas.",
+    "Priorizar microservicioPedidos/src/utils/productClient.js, actualmente en 0.00% de lineas."
+  ]
+}
