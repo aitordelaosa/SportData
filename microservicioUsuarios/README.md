@@ -1,13 +1,13 @@
-# Microservicio de Usuarios (Node.js + Express + MongoDB)
+# Microservicio de Usuarios
 
-Servicio de cuentas para SportData: registro, login JWT, recuperacion de contrasena, perfil y gestion de roles.
+Servicio de cuentas de SportData: registro, login JWT, recuperacion de contrasena, perfil y roles.
 
 ## Requisitos
 
 - Node.js 18+
 - MongoDB 6+
 
-## Configuracion
+## Configuracion local
 
 ```bash
 cd microservicioUsuarios
@@ -15,16 +15,13 @@ cp .env.example .env
 npm install
 ```
 
-Variables clave:
+Variables principales:
 
-- `PORT` (default `4001`)
-- `NODE_ENV` (`development`/`production`)
-- `MONGO_URI` (ejemplo `mongodb://localhost:27018/sportdata_usuarios`)
-- `JWT_SECRET` (debe coincidir con gateway y pedidos)
-- `JWT_EXPIRES_IN` (ejemplo `2h`)
-- `MAIL_USER`
-- `MAIL_APP_PASSWORD`
-- `MAIL_FROM`
+- `PORT` (`4001` por defecto)
+- `MONGO_URI`
+- `JWT_SECRET` (igual que gateway y pedidos)
+- `JWT_EXPIRES_IN`
+- `MAIL_USER`, `MAIL_APP_PASSWORD`, `MAIL_FROM` (opcionales para correo)
 
 ## Ejecucion
 
@@ -34,8 +31,9 @@ npm run dev
 npm start
 ```
 
-- Base URL: `http://localhost:4001/api`
-- Base info: `GET /api`
+Rutas utiles:
+
+- API: `http://localhost:4001/api`
 - Health: `GET /health` o `GET /api/health`
 
 ## Docker
@@ -48,22 +46,24 @@ docker compose up --build -d user-service
 
 ## Endpoints
 
-Metodo | Ruta | Notas
+Metodo | Ruta | Uso
 --- | --- | ---
-POST | `/auth/register` | Crea usuario
-POST | `/auth/login` | Devuelve JWT
-POST | `/auth/forgot-password` | Genera y envia contrasena temporal
-GET | `/users` | Listado de usuarios (JWT admin)
-GET | `/users/me` | Perfil autenticado (JWT)
-PUT | `/users/me` | Actualiza perfil (JWT)
-GET | `/users/me/role` | Devuelve rol del usuario autenticado (JWT)
-GET | `/users/me/role/:role` | Valida si el usuario tiene un rol (JWT)
-PATCH | `/users/:id/role` | Cambia rol de un usuario (JWT admin)
+POST | `/auth/register` | Crear usuario
+POST | `/auth/login` | Obtener JWT
+POST | `/auth/forgot-password` | Generar contrasena temporal
+GET | `/users` | Listar usuarios (admin)
+GET | `/users/me` | Ver perfil
+PUT | `/users/me` | Actualizar perfil
+GET | `/users/me/role` | Ver rol propio
+GET | `/users/me/role/:role` | Validar rol propio
+PATCH | `/users/:id/role` | Cambiar rol (admin)
 
-## Seed de usuarios demo
+Las rutas de usuario requieren JWT salvo registro, login y recuperacion.
+
+## Tests y seed
 
 ```bash
+npm test
+npm run test:coverage
 npm run seed:users
 ```
-
-Este script crea usuarios base y clientes demo si no existen ya en la base de datos.

@@ -1,80 +1,87 @@
-# Microservicio de Productos (FastAPI + PostgreSQL)
+# Microservicio de Productos
 
-API REST para el catalogo de SportData: listado, filtros, detalle, alta/edicion/borrado de productos y control de stock. Tambien sirve imagenes estaticas.
+API de catalogo de SportData. Gestiona productos, filtros, stock e imagenes estaticas.
 
 ## Requisitos
 
 - Python 3.11+
 - PostgreSQL 14+
 
-## Configuracion
+## Configuracion local
 
 ```bash
 cd microservicioProductos
-python -m venv .venv && .venv\Scripts\activate
-pip install -r requirements.txt
-cp .env.example .env
+python -m venv .venv
+.venv\Scripts\python -m pip install -r requirements.txt
 ```
 
-Variables clave (`.env`):
+Este servicio no incluye `.env.example`. Si lo ejecutas fuera de Docker, crea un `.env` con los valores necesarios:
 
-- `PRODUCTS_DATABASE_URL` (ejemplo `postgresql+psycopg://sport4data:sport4data@localhost:5432/sport4data`)
-- `PRODUCTS_STATIC_DIR` (ruta del directorio `static`)
-- `PRODUCTS_STATIC_BASE_URL` (ejemplo `http://127.0.0.1:8002/static`)
-
-Crea la base de datos antes de arrancar:
-
-```sql
-CREATE DATABASE sport4data;
+```env
+PRODUCTS_DATABASE_URL=postgresql+psycopg://sport4data:sport4data@localhost:5432/sport4data
+PRODUCTS_STATIC_DIR=../static
+PRODUCTS_STATIC_BASE_URL=http://127.0.0.1:8002/static
 ```
 
-## Ejecucion local
+La base `sport4data` debe existir antes de arrancar el servicio.
+
+## Ejecucion
 
 ```bash
-uvicorn app.main:app --reload --port 8002
+.venv\Scripts\python -m uvicorn app.main:app --reload --port 8002
 ```
 
-- API productos: `http://localhost:8002/products`
+Rutas utiles:
+
+- API: `http://localhost:8002/products`
 - Swagger: `http://localhost:8002/docs`
 - Health: `GET /`
 - Estaticos: `http://localhost:8002/static/...`
 
 ## Docker
 
-```bash
-docker compose up -d product-service
-```
-
-En Docker, el entrypoint espera a PostgreSQL, aplica seed incremental e inicia FastAPI.
-
-## Seed de catalogo
+Desde la raiz del proyecto:
 
 ```bash
-python seed_products.py
+docker compose up --build -d product-service
 ```
 
-El seed:
+El contenedor espera a PostgreSQL, ejecuta el seed incremental y arranca FastAPI.
 
-- inserta productos que faltan,
-- evita sobreescribir cambios existentes,
-- elimina duplicados por clave `nombre + marca`,
-- respeta productos de seed marcados como eliminados.
+## Seed
 
-## Endpoints principales
+```bash
+.venv\Scripts\python seed_products.py
+```
 
-- `GET /products` (filtros: `categoria`, `deporte`, `marca`, `precio_min`, `precio_max`, `disponible`, `search`, `skip`, `limit`)
-- `GET /products/{id}`
-- `POST /products`
-- `PUT /products/{id}`
-- `PATCH /products/{id}/stock`
-- `DELETE /products/{id}`
+El seed inserta productos que faltan y evita duplicados por `nombre + marca`.
 
-## Notas de imagenes
+## Endpoints
 
-Para alta/edicion se puede enviar imagen codificada en base64 con:
+Metodo | Ruta | Uso
+--- | --- | ---
+GET | `/products` | Listar y filtrar productos
+GET | `/products/{id}` | Ver detalle
+POST | `/products` | Crear producto
+PUT | `/products/{id}` | Actualizar producto
+PATCH | `/products/{id}/stock` | Actualizar stock
+DELETE | `/products/{id}` | Eliminar producto
+
+Filtros disponibles en `GET /products`: `categoria`, `deporte`, `marca`, `precio_min`, `precio_max`, `disponible`, `search`, `skip`, `limit`.
+
+## Imagenes
+
+Para crear o editar productos se puede enviar:
 
 - `imagen_base64`
 - `imagen_nombre`
 - `imagen_mime`
 
-La API guarda la imagen en `static/products` y devuelve `imagen_url` resolviendo contra `PRODUCTS_STATIC_BASE_URL`.
+La API guarda la imagen en `static/products` y devuelve `imagen_url`.
+
+## Tests
+
+```bash
+.venv\Scripts\python -m pip install -r requirements-test.txt
+.venv\Scripts\python -m pytest
+```

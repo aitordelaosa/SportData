@@ -1,28 +1,33 @@
-# Microservicio de Pedidos (Node.js + Express + MongoDB)
+# Microservicio de Pedidos
 
-Servicio de carrito, favoritos, checkout y analitica de pedidos para SportData. Consulta el microservicio de productos para validar disponibilidad y precio en tiempo de compra.
+Servicio de carrito, favoritos, checkout y estadisticas de pedidos. Consulta productos para validar disponibilidad y precio al comprar.
 
 ## Requisitos
 
 - Node.js 18+
 - MongoDB 6+
+- Microservicio de productos accesible.
 
-## Configuracion
+## Configuracion local
 
 ```bash
 cd microservicioPedidos
 npm install
 ```
 
-Este servicio no incluye `.env.example`. Variables recomendadas:
+Este servicio no incluye `.env.example`. Para ejecucion local, crea un `.env`:
 
-- `PORT=7000`
-- `ORDERS_MONGO_URI=mongodb://localhost:27019/sportdata_orders`
-- `PRODUCT_SERVICE_URL=http://localhost:8002`
-- `JWT_SECRET=<mismo valor que gateway y usuarios>`
-- `MAIL_USER=`
-- `MAIL_APP_PASSWORD=`
-- `MAIL_FROM=`
+```env
+PORT=7000
+ORDERS_MONGO_URI=mongodb://localhost:27019/sportdata_orders
+PRODUCT_SERVICE_URL=http://localhost:8002
+JWT_SECRET=super-clave-segura
+MAIL_USER=
+MAIL_APP_PASSWORD=
+MAIL_FROM=
+```
+
+`JWT_SECRET` debe coincidir con usuarios y gateway.
 
 ## Ejecucion
 
@@ -32,8 +37,10 @@ npm run dev
 npm start
 ```
 
-- Base URL: `http://localhost:7000`
-- Health check: `GET /health`
+Rutas utiles:
+
+- API: `http://localhost:7000`
+- Health: `GET /health`
 
 ## Docker
 
@@ -43,44 +50,34 @@ Desde la raiz del proyecto:
 docker compose up --build -d orders-service
 ```
 
-Levanta tambien `orders-db` y conecta con `product-service`.
+## Endpoints
 
-## Seed de pedidos
+Metodo | Ruta | Uso
+--- | --- | ---
+GET | `/cart` | Ver carrito
+POST | `/cart/items` | Agregar producto al carrito
+PATCH | `/cart/items/:productId` | Cambiar cantidad
+DELETE | `/cart/items/:productId` | Eliminar producto del carrito
+GET | `/favorites` | Ver favoritos
+POST | `/favorites/:productId` | Marcar favorito
+DELETE | `/favorites/:productId` | Quitar favorito
+GET | `/orders` | Ver pedidos del usuario
+POST | `/orders/checkout` | Crear pedido desde el carrito
+GET | `/orders/admin/stats` | Ver estadisticas (admin)
 
-Genera pedidos de prueba combinando usuarios existentes y productos disponibles:
+Todas las rutas anteriores requieren JWT.
+
+## Seed
 
 ```bash
 npm run seed:orders -- --clear
 ```
 
-Opciones:
+Opciones: `--clear`, `--repeat <n>`, `--dry-run`.
 
-- `--clear`: borra pedidos antes de insertar
-- `--repeat <n>`: repite el cruce usuario x producto (`1` por defecto)
-- `--dry-run`: calcula volumen sin insertar
+## Tests
 
-Variables usadas por el script:
-
-- `ORDERS_MONGO_URI` (default `mongodb://127.0.0.1:27019/sportdata_orders`)
-- `USERS_MONGO_URI` (si no existe, usa `MONGO_URI` o `mongodb://127.0.0.1:27018/sportdata_usuarios`)
-- `SEED_PRODUCT_SERVICE_URL` (default `http://127.0.0.1:8002`)
-
-## Endpoints
-
-Metodo | Ruta | Notas
---- | --- | ---
-GET | `/cart` | Carrito del usuario (JWT)
-POST | `/cart/items` | Agrega producto al carrito (JWT)
-PATCH | `/cart/items/:productId` | Cambia cantidad (JWT)
-DELETE | `/cart/items/:productId` | Elimina item del carrito (JWT)
-GET | `/favorites` | Lista favoritos (JWT)
-POST | `/favorites/:productId` | Marca favorito (JWT)
-DELETE | `/favorites/:productId` | Quita favorito (JWT)
-GET | `/orders` | Lista pedidos del usuario (JWT)
-POST | `/orders/checkout` | Crea pedido desde carrito (JWT)
-GET | `/orders/admin/stats` | Estadisticas agregadas (JWT admin)
-
-## Correo de confirmacion
-
-Al hacer checkout, el servicio intenta enviar email a `shipping.email`.
-Si SMTP no esta configurado, el pedido se crea igualmente y se registra la incidencia en logs.
+```bash
+npm test
+npm run test:coverage
+```

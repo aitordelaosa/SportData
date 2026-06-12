@@ -380,9 +380,27 @@ function renderSwaggerHtml(openApiUrl = '/openapi.json') {
   <title>SportData API Gateway - Swagger</title>
   <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css" />
   <style>
-    body { margin: 0; background: #0f1320; }
-    #swagger-ui { max-width: 1200px; margin: 0 auto; }
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      background: #ffffff;
+      color: #1f2937;
+    }
+    #swagger-ui {
+      max-width: 1200px;
+      min-height: 100vh;
+      margin: 0 auto;
+      background: #ffffff;
+    }
+    .swagger-ui {
+      color: #1f2937;
+    }
     .swagger-ui .topbar { display: none; }
+    .swagger-ui .scheme-container {
+      background: #ffffff;
+      box-shadow: none;
+    }
   </style>
 </head>
 <body>
@@ -407,4 +425,3 @@ module.exports = {
   buildOpenApiSpec,
   renderSwaggerHtml,
 };
-
